@@ -18,6 +18,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -27,213 +29,337 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lactacare.dominio.RolUsuario
 
-// Colores Base
-val ColorTexto = Color(0xFF546E7A)
-val ColorFondoToggle = Color(0xFFE0E0E0)
-val ColorFondoApp = Color(0xFFFEFEFE)
+// COLORES EXTRAÍDOS DE TU HTML/TAILWIND
+val SlateGray = Color(0xFF546E7A)      // "text-dark-slate-gray"
+val LightGray = Color(0xFFE0E0E0)      // "bg-[#E0E0E0]/50" y bordes
+val OffWhite = Color(0xFFFEFEFE)       // "bg-off-white"
+val White = Color.White
 
 @Composable
 fun PantallaLogin(
     viewModel: LoginViewModel = viewModel(),
-    onIrARegistro: () -> Unit
+    onIrARegistro: (RolUsuario) -> Unit
 ) {
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.mensajeError.collectAsState()
     val exito by viewModel.loginExitoso.collectAsState()
-
-    // OBTENEMOS EL ROL ACTUAL DEL VIEWMODEL
     val rol by viewModel.rolActual.collectAsState()
 
-    // --- LÓGICA DE ADAPTACIÓN ("El Camaleón") ---
-    // Dependiendo del rol, elegimos colores, textos e iconos diferentes
-    val (tituloBienvenida, iconoRol, colorTema, colorIcono) = when (rol) {
-        RolUsuario.ADMINISTRADOR -> Quadruple(
-            "Portal Administrativo",
-            Icons.Default.Apartment,
-            Color(0xFFA3C9A8), // Verde Admin
-            Color(0xFF2E7D32)  // Verde oscuro para icono
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    // --- LÓGICA DE COLORES (INTACTA) ---
+    data class TemaRol(
+        val titulo: String,
+        val icono: androidx.compose.ui.graphics.vector.ImageVector,
+        val colorPrincipal: Color,
+        val colorAcento: Color,
+        val colorIcono: Color,
+        val colorFondoPantalla: Color = OffWhite // Usamos el off-white del HTML por defecto
+    )
+
+    val tema = when (rol) {
+        RolUsuario.ADMINISTRADOR -> TemaRol(
+            titulo = "Portal Administrativo",
+            icono = Icons.Default.Apartment,
+            colorPrincipal = Color(0xFFA3C9A8), // Verde Admin
+            colorAcento = Color(0xFFA3C9A8).copy(alpha = 0.3f),
+            colorIcono = Color(0xFF2E7D32)
         )
-        RolUsuario.DOCTOR -> Quadruple(
-            "Portal Médicos",
-            Icons.Default.HealthAndSafety,
-            Color(0xFFB0C4DE), // Azul Doctor
-            Color(0xFF1565C0)  // Azul oscuro para icono
+        RolUsuario.DOCTOR -> TemaRol(
+            titulo = "Portal Médicos",
+            icono = Icons.Default.HealthAndSafety,
+            colorPrincipal = Color(0xFFB0C4DE), // Azul Doctor
+            colorAcento = Color(0xFFB0C4DE).copy(alpha = 0.3f),
+            colorIcono = Color(0xFF1565C0)
         )
-        RolUsuario.PACIENTE -> Quadruple(
-            "Bienvenido",
-            Icons.Default.ChildCare,
-            Color(0xFFA0D2DB), // Azul/Verde Usuario (original)
-            Color(0xFFE65100)  // Naranja para icono
+        RolUsuario.PACIENTE -> TemaRol(
+            titulo = "Bienvenido", // Texto exacto del HTML
+            icono = Icons.Default.ChildCare,
+            colorPrincipal = Color(0xFFFFC0CB), // Rosado (Usuario)
+            colorAcento = Color(0xFFFFDDE2),
+            colorIcono = SlateGray
         )
     }
 
-    // Estado local para ver password
-    var passwordVisible by remember { mutableStateOf(false) }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(ColorFondoApp)
-            .padding(horizontal = 24.dp)
-    ) {
+    // --- UI: CLONANDO EL HTML ---
+    Scaffold(
+        containerColor = tema.colorFondoPantalla
+    ) { padding ->
         Column(
             modifier = Modifier
+                .padding(padding)
                 .fillMaxSize()
+                .padding(horizontal = 16.dp) // px-4 del HTML
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(32.dp)) // pt-8
 
-            // 1. TÍTULO APP
-            Text("LactaCare", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = ColorTexto)
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // 2. ILUSTRACIÓN DINÁMICA
-            Box(
-                modifier = Modifier
-                    .size(180.dp)
-                    .background(colorTema.copy(alpha = 0.3f), shape = RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = iconoRol,
-                    contentDescription = null,
-                    modifier = Modifier.size(90.dp),
-                    tint = colorIcono
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 3. TÍTULO DINÁMICO
-            Text(tituloBienvenida, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = ColorTexto, textAlign = TextAlign.Center)
-
+            // 1. HEADER: "LactaCare" (text-4xl font-bold)
             Text(
-                "Ingresa tus credenciales para continuar.",
-                fontSize = 16.sp,
-                color = ColorTexto.copy(alpha = 0.7f),
-                modifier = Modifier.padding(top = 4.dp)
+                text = "LactaCare",
+                fontSize = 36.sp,
+                fontWeight = FontWeight.Bold,
+                color = SlateGray,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // 4. TOGGLE SWITCH
+            // 2. IMAGEN (Square aspect ratio)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
-                    .background(ColorFondoToggle.copy(alpha = 0.5f), shape = RoundedCornerShape(12.dp))
-                    .padding(4.dp)
+                    .padding(horizontal = 32.dp, vertical = 8.dp)
+                    .aspectRatio(1f) // Cuadrado perfecto como en el HTML
+                    .background(tema.colorAcento, shape = RoundedCornerShape(16.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                // Aquí iría tu imagen real. Usamos el icono como placeholder visual.
+                Icon(
+                    imageVector = tema.icono,
+                    contentDescription = null,
+                    modifier = Modifier.size(120.dp),
+                    tint = tema.colorIcono
+                )
+            }
+
+            // 3. TÍTULOS (text-[32px] font-bold)
+            Text(
+                text = tema.titulo,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = SlateGray,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 0.dp, bottom = 8.dp)
+            )
+
+            Text(
+                text = "Cuidado inteligente, lactancia tranquila.",
+                fontSize = 16.sp,
+                color = SlateGray,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            // 4. TOGGLE SWITCH (Estilo HTML: Fondo Gris, Botón Blanco)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp) // h-12 (approx 48-56dp)
+                    .clip(RoundedCornerShape(8.dp)) // rounded-lg
+                    .background(LightGray.copy(alpha = 0.5f)) // bg-[#E0E0E0]/50
+                    .padding(4.dp) // p-1
             ) {
                 Row(modifier = Modifier.fillMaxSize()) {
+                    // Botón Activo (Login) -> Blanco con sombra
                     Box(
                         modifier = Modifier
-                            .weight(1f).fillMaxHeight()
-                            .background(Color.White, shape = RoundedCornerShape(10.dp)),
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .shadow(1.dp, RoundedCornerShape(8.dp))
+                            .background(White, RoundedCornerShape(8.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Iniciar Sesión", fontWeight = FontWeight.Bold, color = ColorTexto)
+                        Text("Iniciar Sesión", fontWeight = FontWeight.SemiBold, color = SlateGray)
                     }
+                    // Botón Inactivo (Registro) -> Transparente
                     Box(
                         modifier = Modifier
-                            .weight(1f).fillMaxHeight()
-                            .clickable { onIrARegistro() },
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable { onIrARegistro(rol) },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Registrarse", fontWeight = FontWeight.Medium, color = ColorTexto.copy(alpha = 0.6f))
+                        Text("Registrarse", fontWeight = FontWeight.SemiBold, color = SlateGray.copy(alpha = 0.7f))
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // 5. FORMULARIO
-            CampoLogin(label = "Email", valor = email, onChange = { viewModel.onEmailChange(it) }, colorFocus = colorTema, esPassword = false)
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Password con icono de ojo
+            // 5. INPUTS (Estilo HTML: Label fuera, Input blanco con borde)
+
+            // Email
+            CampoLoginHtml(
+                label = "Email",
+                valor = email,
+                placeholder = "tu.email@ejemplo.com",
+                onChange = { viewModel.onEmailChange(it) },
+                colorFocus = tema.colorPrincipal
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Password
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text("Contraseña", fontWeight = FontWeight.SemiBold, color = ColorTexto, modifier = Modifier.padding(bottom = 8.dp))
+                Text(
+                    text = "Contraseña",
+                    fontWeight = FontWeight.SemiBold,
+                    color = SlateGray,
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
                 OutlinedTextField(
                     value = password,
                     onValueChange = { viewModel.onPasswordChange(it) },
-                    placeholder = { Text("••••••••", color = Color.Gray) },
+                    placeholder = { Text("Tu contraseña", color = SlateGray.copy(alpha = 0.5f)) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = colorTema, // El borde cambia según el rol
-                        unfocusedBorderColor = ColorFondoToggle,
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White
-                    ),
+                    shape = RoundedCornerShape(8.dp), // rounded-lg
+                    colors = inputHtmlColors(tema.colorPrincipal),
                     singleLine = true,
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         val icon = if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(icon, contentDescription = null, tint = Color.Gray)
+                            Icon(icon, contentDescription = null, tint = SlateGray.copy(alpha = 0.5f))
                         }
                     }
                 )
             }
 
-            Text(
-                "¿Olvidaste tu contraseña?",
-                color = colorTema, // Link del color del rol
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp,
-                modifier = Modifier.align(Alignment.End).padding(top = 8.dp).clickable { }
-            )
+            // Enlace Olvidó Contraseña
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                Text(
+                    text = "¿Olvidaste tu contraseña?",
+                    color = tema.colorPrincipal, // text-soft-blue (dinámico)
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .clickable { }
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            if (error != null) Text(error!!, color = Color.Red, fontSize = 14.sp)
-            if (exito) Text("¡Acceso Concedido!", color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
+            // Mensajes de error/exito
+            if (error != null) Text(error!!, color = Color.Red, fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
+            if (exito) Text("¡Acceso Concedido!", color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
 
-            // 6. BOTÓN LOGIN DINÁMICO
+            // 6. BOTÓN PRINCIPAL (h-14, rounded-lg)
             Button(
                 onClick = { viewModel.login() },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colorTema), // Botón del color del rol
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp), // h-14
+                shape = RoundedCornerShape(8.dp), // rounded-lg
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = tema.colorPrincipal, // bg-soft-blue (dinámico)
+                    contentColor = White
+                ),
                 enabled = !isLoading
             ) {
-                if (isLoading) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                else Text("Ingresar como $tituloBienvenida", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                if (isLoading) CircularProgressIndicator(color = White, modifier = Modifier.size(24.dp))
+                else Text("Iniciar Sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Botón Google y Footer (Simplificados para ahorrar espacio visual, código igual al anterior)
-            OutlinedButton(onClick = {}, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, ColorFondoToggle)) {
-                Text("G ", color = Color.Red, fontWeight = FontWeight.Bold); Text("Continuar con Google", color = ColorTexto)
+            // 7. DIVIDER CON "O"
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(modifier = Modifier.weight(1f), color = LightGray)
+                Text(
+                    text = "O",
+                    fontSize = 14.sp,
+                    color = SlateGray.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+                HorizontalDivider(modifier = Modifier.weight(1f), color = LightGray)
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 8. BOTÓN GOOGLE (Blanco, Borde Gris)
+            OutlinedButton(
+                onClick = { /* Google Login */ },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(1.dp, LightGray),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = White)
+            ) {
+                // Simulamos el icono de Google con texto coloreado por simplicidad
+                Text("G ", color = Color.Red, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Continuar con Google", color = SlateGray, fontWeight = FontWeight.SemiBold)
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 9. FOOTER
+            val footerText = buildAnnotatedString {
+                append("Al continuar, aceptas nuestra ")
+                withStyle(SpanStyle(color = tema.colorPrincipal, fontWeight = FontWeight.SemiBold)) {
+                    append("Política de Privacidad")
+                }
+                append(" y ")
+                withStyle(SpanStyle(color = tema.colorPrincipal, fontWeight = FontWeight.SemiBold)) {
+                    append("Términos de Servicio")
+                }
+                append(".")
+            }
+            Text(
+                text = footerText,
+                fontSize = 12.sp,
+                color = SlateGray.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                lineHeight = 16.sp
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
-// Clase auxiliar para guardar los 4 valores de configuración
-data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
+// --- COMPONENTES AUXILIARES PARA ESTILO HTML ---
 
 @Composable
-fun CampoLogin(label: String, valor: String, onChange: (String) -> Unit, colorFocus: Color, esPassword: Boolean) {
+fun CampoLoginHtml(
+    label: String,
+    valor: String,
+    placeholder: String,
+    onChange: (String) -> Unit,
+    colorFocus: Color
+) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(label, fontWeight = FontWeight.SemiBold, color = ColorTexto, modifier = Modifier.padding(bottom = 8.dp))
+        // Label Arriba y en Negrita (font-semibold)
+        Text(
+            text = label,
+            fontWeight = FontWeight.SemiBold,
+            color = SlateGray,
+            fontSize = 16.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        // Input Blanco con Borde
         OutlinedTextField(
-            value = valor, onValueChange = onChange,
-            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = colorFocus, unfocusedBorderColor = ColorFondoToggle, focusedContainerColor = Color.White, unfocusedContainerColor = Color.White),
+            value = valor,
+            onValueChange = onChange,
+            placeholder = { Text(placeholder, color = SlateGray.copy(alpha = 0.5f)) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp), // rounded-lg
+            colors = inputHtmlColors(colorFocus),
             singleLine = true
         )
     }
 }
+
+@Composable
+fun inputHtmlColors(colorFocus: Color) = OutlinedTextFieldDefaults.colors(
+    focusedContainerColor = White,
+    unfocusedContainerColor = White,
+    focusedBorderColor = colorFocus.copy(alpha = 0.5f), // focus:ring-soft-blue/50
+    unfocusedBorderColor = LightGray,
+    cursorColor = SlateGray,
+    focusedTextColor = SlateGray,
+    unfocusedTextColor = SlateGray
+)

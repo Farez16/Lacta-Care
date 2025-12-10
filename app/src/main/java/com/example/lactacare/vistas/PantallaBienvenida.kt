@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.example.lactacare.dominio.RolUsuario
 
 // --- COLORES EXTRAÍDOS DE TU HTML ---
-val FondoCrema = Color(0xFFF9F6F2)    // bg-cream-bg
+
 val FondoTarjeta = Color(0xFFF9F6F2)  // Igual al fondo o un poco más claro
 val BeigeClaro = Color(0xFFEFEBE4)    // bg-beige-light (Fondo de los iconos)
 val TextoPrimario = Color(0xFF4A4A4A) // text-primary
@@ -48,7 +48,6 @@ fun PantallaBienvenida(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(FondoCrema)
             .verticalScroll(rememberScrollState())
     ) {
 
@@ -103,14 +102,14 @@ fun PantallaBienvenida(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp) // Espacio entre tarjetas
         ) {
-
-            // Tarjeta ADMINISTRADOR
+            // Tarjeta USUARIO
             TarjetaRol(
-                titulo = "Administrador",
-                icono = Icons.Outlined.Apartment, // Icono similar a "domain"
-                colorIcono = AccentAdmin,
-                onClick = { onRolSeleccionado(RolUsuario.ADMINISTRADOR) }
+                titulo = "Usuario",
+                icono = Icons.Outlined.ChildCare,
+                colorIcono = AccentUser,
+                onClick = { onRolSeleccionado(RolUsuario.PACIENTE) }
             )
+
 
             // Tarjeta DOCTOR
             TarjetaRol(
@@ -120,12 +119,12 @@ fun PantallaBienvenida(
                 onClick = { onRolSeleccionado(RolUsuario.DOCTOR) }
             )
 
-            // Tarjeta USUARIO
+            // Tarjeta ADMINISTRADOR
             TarjetaRol(
-                titulo = "Usuario",
-                icono = Icons.Outlined.ChildCare,
-                colorIcono = AccentUser,
-                onClick = { onRolSeleccionado(RolUsuario.PACIENTE) }
+                titulo = "Administrador",
+                icono = Icons.Outlined.Apartment, // Icono similar a "domain"
+                colorIcono = AccentAdmin,
+                onClick = { onRolSeleccionado(RolUsuario.ADMINISTRADOR) }
             )
         }
 

@@ -10,6 +10,16 @@ val MomAccent = Color(0xFFFFDDE2)        // #FFDDE2 (Rosado Muy Claro)
 val MomText = Color(0xFF545454)          // #545454 (Gris Oscuro)
 val MomBackground = Color(0xFFFFF9FB)    // #FFF9FB (Blanco Rosado)
 
+// --- 4. COLORES ESPECÍFICOS (LACTARIOS Y ESTADO) ---
+val MintPrimary = Color(0xFF20DFBF)
+val LactarioBg = Color(0xFFF6F8F8)
+val StatusGreen = Color(0xFF22C55E)
+val StatusRed = Color(0xFFEF4444)
+val StatusYellow = Color(0xFFEAB308)
+val SoftPink = Color(0xFFF7C5CC)
+val DistanceBg = Color(0xFFE0F2F1)
+
+
 // DOCTOR (MÉDICO) - Azul Clínico
 val DoctorPrimary = Color(0xFF42A5F5)    // Azul Botón
 val DoctorText = Color(0xFF0D47A1)       // Azul Texto Fuerte
@@ -32,3 +42,19 @@ val SlateGray = TextoOscuroClean
 val LightGray = BordeGrisClean
 val OffWhite = FondoBlancoClean
 val White = Color.White
+
+
+
+// --- COLORES EXACTOS DEL DISEÑO (Preservados) ---
+val InvFondo = Color(0xFFF6F8F6)
+val InvPinkPrimary = Color(0xFFF472B6)
+val InvPinkSoft = Color(0xFFFCE7F3)
+val InvGreenText = Color(0xFF15803D)
+val InvGreenBg = Color(0xFFF0FDF4)
+val InvBlueText = Color(0xFF1D4ED8)
+val InvBlueBg = Color(0xFFEFF6FF)
+val InvRedText = Color(0xFFB91C1C)
+val InvRedBg = Color(0xFFFEF2F2)
+val InvAmberBg = Color(0xFFFFFBEB)
+val InvZincText = Color(0xFF52525B)
+val InvZincBg = Color(0xFFF4F4F5)

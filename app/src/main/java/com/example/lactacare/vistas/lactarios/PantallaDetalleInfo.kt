@@ -1,4 +1,4 @@
-package com.example.lactacare.vistas
+package com.example.lactacare.vistas.lactarios
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,6 +13,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lactacare.theme.*
+import com.example.lactacare.vistas.auth.FondoBlancoClean
+import com.example.lactacare.vistas.auth.TextoOscuroClean
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

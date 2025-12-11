@@ -1,4 +1,4 @@
-package com.example.lactacare.vistas
+package com.example.lactacare.vistas.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

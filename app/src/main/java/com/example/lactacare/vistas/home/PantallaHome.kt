@@ -1,43 +1,53 @@
-package com.example.lactacare.vistas
+package com.example.lactacare.vistas.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.lactacare.datos.MockAdminRepository
+import com.example.lactacare.datos.MockMedicoRepository
+import com.example.lactacare.datos.MockPacienteRepository
 import com.example.lactacare.dominio.RolUsuario
 import com.example.lactacare.theme.*
+import com.example.lactacare.vistas.chat.PantallaChat
+import com.example.lactacare.vistas.inventario.PantallaInventario
+import com.example.lactacare.vistas.perfil.PantallaPerfil // Asegúrate de importar esto
 
 @Composable
 fun PantallaHome(
-    viewModel: HomeViewModel = viewModel(),
-    rolUsuario: RolUsuario,
+    rolUsuario: RolUsuario, // <--- Este dato lo usaremos abajo
     onLogout: () -> Unit,
-    // --- NUEVOS PARÁMETROS REQUERIDOS ---
-    // Estos son los que MainActivity está intentando enviar
     onNavReservas: () -> Unit = {},
     onNavBebe: () -> Unit = {},
-    onNavInfo: (String) -> Unit = {}
+    onNavInfo: (String) -> Unit = {},
+
+    viewModel: HomeViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return HomeViewModel(
+                    pacienteRepo = MockPacienteRepository(),
+                    medicoRepo = MockMedicoRepository(),
+                    adminRepo = MockAdminRepository()
+                ) as T
+            }
+        }
+    )
 ) {
     LaunchedEffect(rolUsuario) {
         viewModel.setRol(rolUsuario)
     }
 
     val seccionActual by viewModel.seccionActual.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
-    // Configuración de colores dinámica
     val (colorPrincipal, colorAcento) = when (rolUsuario) {
         RolUsuario.PACIENTE -> Pair(MomPrimary, MomAccent)
         RolUsuario.DOCTOR -> Pair(DoctorPrimary, DoctorBackground)
         RolUsuario.ADMINISTRADOR -> Pair(AdminPrimary, AdminBackground)
-    }
-
-    val saludo = when (rolUsuario) {
-        RolUsuario.PACIENTE -> "Buenos días, Sarah"
-        RolUsuario.DOCTOR -> "Dr. Especialista"
-        RolUsuario.ADMINISTRADOR -> "Admin Sistema"
     }
 
     val menuItems = viewModel.obtenerMenuPorRol(rolUsuario)
@@ -58,10 +68,14 @@ fun PantallaHome(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // 1. TOP BAR COMÚN
-            TopBarHome(saludo = saludo, colorIcono = TextoOscuroClean)
+            // CABECERA: Solo se muestra en "Inicio"
+            if (seccionActual.id == "inicio") {
+                TopBarHome(
+                    saludo = uiState.nombreUsuario,
+                    colorIcono = TextoOscuroClean
+                )
+            }
 
-            // 2. CONTENIDO DINÁMICO
             Box(modifier = Modifier.weight(1f)) {
                 when (seccionActual.id) {
                     "inicio" -> {
@@ -69,7 +83,6 @@ fun PantallaHome(
                             RolUsuario.PACIENTE -> DashboardPaciente(
                                 colorPrimary = colorPrincipal,
                                 colorAccent = colorAcento,
-                                // Pasamos las funciones de navegación al Dashboard
                                 onNavReservas = onNavReservas,
                                 onNavBebe = onNavBebe,
                                 onNavInfo = onNavInfo
@@ -78,9 +91,18 @@ fun PantallaHome(
                             RolUsuario.ADMINISTRADOR -> DashboardAdmin(colorPrincipal, colorAcento)
                         }
                     }
-                    else -> {
-                        PantallaEnConstruccion(seccionActual.titulo)
-                    }
+
+                    // --- SECCIONES SECUNDARIAS ---
+                    "chatbot" -> PantallaChat()
+                    "registros" -> PantallaInventario()
+
+                    // --- AQUÍ ESTABA EL ERROR ---
+                    "perfil" -> PantallaPerfil(
+                        rolUsuario = rolUsuario, // <--- ¡AHORA SÍ LE PASAMOS EL ROL!
+                        onLogout = onLogout
+                    )
+
+                    else -> Box(modifier = Modifier.fillMaxSize()) { Text("En construcción") }
                 }
             }
         }

@@ -1,4 +1,4 @@
-package com.example.lactacare.vistas
+package com.example.lactacare.vistas.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

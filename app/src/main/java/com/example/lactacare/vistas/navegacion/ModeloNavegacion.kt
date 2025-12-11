@@ -1,8 +1,7 @@
-package com.example.lactacare.vistas
+package com.example.lactacare.vistas.navegacion
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.graphics.vector.ImageVector
 
 // Representa un botón en la barra de navegación

@@ -1,4 +1,4 @@
-package com.example.lactacare.vistas
+package com.example.lactacare.vistas.home
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -16,17 +16,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lactacare.theme.TextoOscuroClean
@@ -234,7 +231,7 @@ fun FondoFloralLirio(color: Color) {
         // Posicionamiento en esquina superior derecha
         translate(left = width - scale * 0.5f, top = 20f) {
             // Estilo de línea (Stroke) en lugar de relleno
-            val strokeStyle = Stroke(width = 5f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+            val strokeStyle = Stroke(width = 5f, cap = StrokeCap.Round)
 
             // Pétalo Central (Hacia abajo-izquierda)
             val pathCentral = Path().apply {
@@ -262,7 +259,7 @@ fun FondoFloralLirio(color: Color) {
             drawPath(pathDer, color, style = strokeStyle)
 
             // Estambres (Detalle fino)
-            val stamenStroke = Stroke(width = 3f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+            val stamenStroke = Stroke(width = 3f, cap = StrokeCap.Round)
             drawLine(color, Offset(0f, 0f), Offset(-scale*0.2f, scale*0.8f), strokeWidth = 3f)
             drawCircle(color, 6f, Offset(-scale*0.2f, scale*0.8f))
 

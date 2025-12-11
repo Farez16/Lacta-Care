@@ -21,7 +21,17 @@ import androidx.navigation.navArgument
 // Imports de tus vistas y dominio
 import com.example.lactacare.dominio.RolUsuario
 // import com.example.lactacare.theme.LactaCareTheme // <--- Eliminado, usamos MaterialTheme directo
-import com.example.lactacare.vistas.*
+import com.example.lactacare.vistas.auth.LoginViewModel
+import com.example.lactacare.vistas.auth.PantallaBienvenida
+import com.example.lactacare.vistas.auth.PantallaLogin
+import com.example.lactacare.vistas.auth.PantallaRegistroPersona
+import com.example.lactacare.vistas.auth.RegistroPersonaViewModel
+import com.example.lactacare.vistas.bebe.PantallaAnadirBebe
+import com.example.lactacare.vistas.bebe.PantallaMiBebe
+import com.example.lactacare.vistas.home.PantallaHome
+import com.example.lactacare.vistas.lactarios.PantallaDetalleInfo
+import com.example.lactacare.vistas.lactarios.PantallaLactario
+import com.example.lactacare.vistas.lactarios.PantallaReservas
 
 class MainActivity : ComponentActivity() {
 
@@ -125,11 +135,17 @@ class MainActivity : ComponentActivity() {
 
                         // 5. SUB-PANTALLAS DEL PACIENTE
                         composable("reservas") {
-                            PantallaReservas(onVolver = { navController.popBackStack() })
+                            PantallaLactario(onVolver = { navController.popBackStack() })
                         }
 
                         composable("mi_bebe") {
-                            PantallaMiBebe(onVolver = { navController.popBackStack() })
+                            PantallaMiBebe(onVolver = { navController.popBackStack() },
+                                onNavAnadirBebe = { navController.navigate("anadir_bebe") })
+                        }
+                        composable("anadir_bebe") {
+                            PantallaAnadirBebe(
+                                onVolver = { navController.popBackStack() }
+                            )
                         }
 
                         composable(

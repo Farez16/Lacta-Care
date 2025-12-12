@@ -1,6 +1,6 @@
 package com.example.lactacare.dominio
 
-data class Reserva(
+data class Reservas(
     val id: Int,
     val idLactario: Int,
     val idPaciente: Int,

@@ -1,7 +1,6 @@
 package com.example.lactacare
 
-// NOTA: No importamos 'android.os.Bundle' aquí para evitar conflictos.
-
+import android.os.Bundle // Import necesario explícito
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,7 +19,6 @@ import androidx.navigation.navArgument
 
 // Imports de tus vistas y dominio
 import com.example.lactacare.dominio.RolUsuario
-// import com.example.lactacare.theme.LactaCareTheme // <--- Eliminado, usamos MaterialTheme directo
 import com.example.lactacare.vistas.auth.LoginViewModel
 import com.example.lactacare.vistas.auth.PantallaBienvenida
 import com.example.lactacare.vistas.auth.PantallaLogin
@@ -30,16 +28,13 @@ import com.example.lactacare.vistas.bebe.PantallaAnadirBebe
 import com.example.lactacare.vistas.bebe.PantallaMiBebe
 import com.example.lactacare.vistas.home.PantallaHome
 import com.example.lactacare.vistas.lactarios.PantallaDetalleInfo
-import com.example.lactacare.vistas.lactarios.PantallaLactario
-import com.example.lactacare.vistas.lactarios.PantallaReservas
+import com.example.lactacare.vistas.lactarios.PantallaReservas // <--- USAMOS ESTA (La del buscador)
 
 class MainActivity : ComponentActivity() {
 
-    // Usamos el nombre completo 'android.os.Bundle' para evitar ambigüedades
-    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // CORRECCIÓN: Usamos MaterialTheme directo (el estándar de Android)
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     val navController = rememberNavController()
@@ -126,22 +121,39 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(0)
                                     }
                                 },
-                                // CONEXIÓN DE RUTAS DEL PACIENTE
-                                onNavReservas = { navController.navigate("reservas") },
+                                // --- CORRECCIONES DE NAVEGACIÓN ---
+
+                                // A. Si NO tiene cita -> Botón "Reservar Ahora" -> Vamos al Buscador
+                                onNavegarANuevaReserva = {
+                                    navController.navigate("reservas_busqueda")
+                                },
+
+                                // B. Si TIENE cita -> Botón "Ver Detalles" -> (Futura pantalla detalle)
+                                onNavegarADetalleReserva = {
+                                    // Por ahora no hace nada o podrías poner un Log
+                                    // navController.navigate("reserva_detalle_ticket")
+                                },
+
                                 onNavBebe = { navController.navigate("mi_bebe") },
                                 onNavInfo = { titulo -> navController.navigate("info/$titulo") }
                             )
                         }
 
                         // 5. SUB-PANTALLAS DEL PACIENTE
-                        composable("reservas") {
-                            PantallaLactario(onVolver = { navController.popBackStack() })
+
+                        // PANTALLA DE BÚSQUEDA (Lista de Lactarios)
+                        composable("reservas_busqueda") {
+                            PantallaReservas(onVolver = { navController.popBackStack() })
                         }
+
+                        // (Futura pantalla detalle ticket)
+                        // composable("reserva_detalle_ticket") { ... }
 
                         composable("mi_bebe") {
                             PantallaMiBebe(onVolver = { navController.popBackStack() },
                                 onNavAnadirBebe = { navController.navigate("anadir_bebe") })
                         }
+
                         composable("anadir_bebe") {
                             PantallaAnadirBebe(
                                 onVolver = { navController.popBackStack() }
@@ -154,7 +166,7 @@ class MainActivity : ComponentActivity() {
                         ) { backStackEntry ->
                             val titulo = backStackEntry.arguments?.getString("titulo") ?: "Información"
                             PantallaDetalleInfo(
-                                titulo = titulo,
+                                titulo = titulo, // Corrección: pasamos el parámetro correcto
                                 onVolver = { navController.popBackStack() }
                             )
                         }

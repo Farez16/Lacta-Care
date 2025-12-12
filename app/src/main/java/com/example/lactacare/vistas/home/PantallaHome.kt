@@ -8,20 +8,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.lactacare.datos.MockAdminRepository
-import com.example.lactacare.datos.MockMedicoRepository
-import com.example.lactacare.datos.MockPacienteRepository
+import com.example.lactacare.datos.*
 import com.example.lactacare.dominio.RolUsuario
 import com.example.lactacare.theme.*
 import com.example.lactacare.vistas.chat.PantallaChat
 import com.example.lactacare.vistas.inventario.PantallaInventario
-import com.example.lactacare.vistas.perfil.PantallaPerfil // Asegúrate de importar esto
+import com.example.lactacare.vistas.perfil.PantallaPerfil
 
 @Composable
 fun PantallaHome(
-    rolUsuario: RolUsuario, // <--- Este dato lo usaremos abajo
+    rolUsuario: RolUsuario,
     onLogout: () -> Unit,
-    onNavReservas: () -> Unit = {},
+    // Recibimos las acciones de navegación desde el Main
+    onNavegarANuevaReserva: () -> Unit = {},
+    onNavegarADetalleReserva: () -> Unit = {},
     onNavBebe: () -> Unit = {},
     onNavInfo: (String) -> Unit = {},
 
@@ -31,15 +31,15 @@ fun PantallaHome(
                 return HomeViewModel(
                     pacienteRepo = MockPacienteRepository(),
                     medicoRepo = MockMedicoRepository(),
-                    adminRepo = MockAdminRepository()
+                    adminRepo = MockAdminRepository(),
+                    reservaRepo = MockReservasRepository(),
+                    bebeRepo = MockBebeRepository()
                 ) as T
             }
         }
     )
 ) {
-    LaunchedEffect(rolUsuario) {
-        viewModel.setRol(rolUsuario)
-    }
+    LaunchedEffect(rolUsuario) { viewModel.setRol(rolUsuario) }
 
     val seccionActual by viewModel.seccionActual.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
@@ -63,17 +63,10 @@ fun PantallaHome(
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-        ) {
-            // CABECERA: Solo se muestra en "Inicio"
+        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+
             if (seccionActual.id == "inicio") {
-                TopBarHome(
-                    saludo = uiState.nombreUsuario,
-                    colorIcono = TextoOscuroClean
-                )
+                TopBarHome(saludo = uiState.nombreUsuario, colorIcono = TextoOscuroClean)
             }
 
             Box(modifier = Modifier.weight(1f)) {
@@ -83,7 +76,14 @@ fun PantallaHome(
                             RolUsuario.PACIENTE -> DashboardPaciente(
                                 colorPrimary = colorPrincipal,
                                 colorAccent = colorAcento,
-                                onNavReservas = onNavReservas,
+                                nombreUsuario = uiState.nombreUsuario,
+                                proximaCita = uiState.proximaReserva,
+                                nombreBebe = uiState.nombreBebe,
+
+                                // --- CORRECCIÓN AQUÍ ---
+                                // El Dashboard espera 'onNavReservas', así que le asignamos la función que viene del Main
+                                onNavReservas = onNavegarANuevaReserva,
+
                                 onNavBebe = onNavBebe,
                                 onNavInfo = onNavInfo
                             )
@@ -91,17 +91,9 @@ fun PantallaHome(
                             RolUsuario.ADMINISTRADOR -> DashboardAdmin(colorPrincipal, colorAcento)
                         }
                     }
-
-                    // --- SECCIONES SECUNDARIAS ---
                     "chatbot" -> PantallaChat()
                     "registros" -> PantallaInventario()
-
-                    // --- AQUÍ ESTABA EL ERROR ---
-                    "perfil" -> PantallaPerfil(
-                        rolUsuario = rolUsuario, // <--- ¡AHORA SÍ LE PASAMOS EL ROL!
-                        onLogout = onLogout
-                    )
-
+                    "perfil" -> PantallaPerfil(rolUsuario = rolUsuario, onLogout = onLogout)
                     else -> Box(modifier = Modifier.fillMaxSize()) { Text("En construcción") }
                 }
             }

@@ -1,23 +1,40 @@
 package com.example.lactacare.datos
 
-import com.example.lactacare.dominio.*
+import com.example.lactacare.dominio.Bebe
+import com.example.lactacare.dominio.BebeRepository
 import kotlinx.coroutines.delay
 
 class MockBebeRepository : BebeRepository {
 
-    private val bebesFalsos = mutableListOf(
-        Bebe(1, 1, "Thiago", "2025-01-15", "Masculino"),
-        Bebe(2, 1, "Lucía", "2024-06-20", "Femenino")
+    // BASE DE DATOS EN MEMORIA (Ajustada a tu Entidad real de 5 campos)
+    private val dbBebes = mutableListOf(
+        Bebe(
+            id = 500,
+            idFamiliar = 1, // Pertenece al usuario logueado
+            nombre = "Thiago",
+            fechaNacimiento = "2024-06-15",
+            genero = "Masculino"
+        )
     )
 
     override suspend fun obtenerBebesPorFamiliar(idFamiliar: Int): List<Bebe> {
         delay(500)
-        return bebesFalsos.filter { it.idFamiliar == idFamiliar }
+        return dbBebes.filter { it.idFamiliar == idFamiliar }
     }
 
+    // CORRECCIÓN: Renombramos 'agregarBebe' a 'registrarBebe'
     override suspend fun registrarBebe(bebe: Bebe): Boolean {
         delay(1000)
-        bebesFalsos.add(bebe)
-        return true
+        return if (bebe.nombre.isNotEmpty()) {
+            dbBebes.add(bebe)
+            true
+        } else {
+            false
+        }
+    }
+
+    override suspend fun obtenerBebePorId(id: Int): Bebe? {
+        delay(200)
+        return dbBebes.find { it.id == id }
     }
 }

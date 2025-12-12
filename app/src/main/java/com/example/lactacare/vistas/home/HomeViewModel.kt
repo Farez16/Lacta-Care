@@ -2,37 +2,37 @@ package com.example.lactacare.vistas.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.lactacare.dominio.AdminRepository
-import com.example.lactacare.dominio.MedicoRepository
-import com.example.lactacare.dominio.PacienteRepository
-import com.example.lactacare.dominio.RolUsuario
+import com.example.lactacare.dominio.*
 import com.example.lactacare.vistas.navegacion.ItemMenu
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-// Estado para la UI del Home (Nombre, saludo, carga)
+// Estado ampliado con datos del Dashboard
 data class HomeUiState(
-    val nombreUsuario: String = "Usuario",
-    val isLoading: Boolean = false
+    val nombreUsuario: String = "Cargando...",
+    val isLoading: Boolean = false,
+    // Datos dinámicos para el Dashboard Paciente
+    val proximaReserva: Reservas? = null,
+    val nombreBebe: String? = null
 )
 
 class HomeViewModel(
     private val pacienteRepo: PacienteRepository,
     private val medicoRepo: MedicoRepository,
-    private val adminRepo: AdminRepository
+    private val adminRepo: AdminRepository,
+    // Nuevas dependencias para llenar el Dashboard
+    private val reservaRepo: ReservasRepository,
+    private val bebeRepo: BebeRepository
 ) : ViewModel() {
 
-    // Estado del Rol actual
     private val _rolActual = MutableStateFlow(RolUsuario.PACIENTE)
     val rolActual: StateFlow<RolUsuario> = _rolActual.asStateFlow()
 
-    // Estado de la Sección seleccionada
     private val _seccionActual = MutableStateFlow<ItemMenu>(ItemMenu.Inicio)
     val seccionActual: StateFlow<ItemMenu> = _seccionActual.asStateFlow()
 
-    // Nuevo: Estado de Datos de Usuario (Para quitar el hardcode)
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
@@ -41,32 +41,47 @@ class HomeViewModel(
         cargarDatosUsuario(rol)
     }
 
-    // ... dentro de HomeViewModel ...
-
     private fun cargarDatosUsuario(rol: RolUsuario) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
+            val idUsuario = 1 // Simulamos usuario logueado
 
+            // 1. Cargar Nombre según Rol
             val nombreRecuperado = when (rol) {
                 RolUsuario.PACIENTE -> {
-                    val paciente = pacienteRepo.obtenerPacientePorId(1)
-                    // CORRECCIÓN: Concatenamos Nombre + Apellido
-                    if (paciente != null) "Hola, ${paciente.primerNombre}" else "Hola, Mamá"
+                    val p = pacienteRepo.obtenerPacientePorId(idUsuario)
+                    p?.primerNombre ?: "Mamá"
                 }
                 RolUsuario.DOCTOR -> {
-                    // Asumo que Medico tiene campos similares, ajusta si es necesario
-                    val medico = medicoRepo.obtenerMedicoPorId(1)
-                    if (medico != null) "Dr. ${medico.primerNombre}" else "Dr. Especialista"
+                    val m = medicoRepo.obtenerMedicoPorId(idUsuario)
+                    "Dr. ${m?.primerNombre ?: "Especialista"}"
                 }
                 RolUsuario.ADMINISTRADOR -> {
-                    val admin = adminRepo.obtenerAdminPorId(1)
-                    if (admin != null) "Admin. ${admin.primerNombre}" else "Administrador"
+                    val a = adminRepo.obtenerAdminPorId(idUsuario)
+                    "Admin. ${a?.primerNombre ?: "Sistema"}"
+                }
+            }
+
+            // 2. Si es Paciente, cargar datos del Dashboard (Citas y Bebés)
+            var proximaCita: Reservas? = null
+            var miBebe: String? = null
+
+            if (rol == RolUsuario.PACIENTE) {
+                // Cargar próxima cita
+                proximaCita = reservaRepo.obtenerProximaReservaPaciente(idUsuario)
+
+                // Cargar nombre del primer bebé
+                val bebes = bebeRepo.obtenerBebesPorFamiliar(idUsuario)
+                if (bebes.isNotEmpty()) {
+                    miBebe = bebes[0].nombre
                 }
             }
 
             _uiState.value = HomeUiState(
-                nombreUsuario = nombreRecuperado,
-                isLoading = false
+                nombreUsuario = "Hola, $nombreRecuperado",
+                isLoading = false,
+                proximaReserva = proximaCita,
+                nombreBebe = miBebe
             )
         }
     }

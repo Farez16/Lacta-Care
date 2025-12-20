@@ -1,7 +1,7 @@
 package com.example.lactacare.datos.network
 
-import com.example.lactacare.datos.model.ErrorResponse
-import com.example.lactacare.datos.model.Resource
+import com.example.lactacare.datos.dto.ErrorResponse
+import com.example.lactacare.datos.dto.Resource
 import com.google.gson.Gson
 import retrofit2.Response
 

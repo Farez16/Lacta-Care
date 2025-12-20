@@ -1,6 +1,4 @@
-package com.example.lactacare.dominio
-
-import java.time.LocalDate
+package com.example.lactacare.dominio.model
 
 data class Bebe(
     val id: Int,

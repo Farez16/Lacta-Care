@@ -3,48 +3,51 @@ package com.example.lactacare.vistas.home
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.lactacare.datos.MockAdminRepository
-import com.example.lactacare.datos.MockMedicoRepository
-import com.example.lactacare.datos.MockPacienteRepository
-import com.example.lactacare.datos.repository.AuthRepositoryImpl
-import com.example.lactacare.dominio.RolUsuario
-import com.example.lactacare.theme.*
+import com.example.lactacare.datos.*
+import com.example.lactacare.dominio.model.RolUsuario
 import com.example.lactacare.vistas.chat.PantallaChat
 import com.example.lactacare.vistas.inventario.PantallaInventario
-import com.example.lactacare.vistas.perfil.PantallaPerfil // Asegúrate de importar esto
+import com.example.lactacare.vistas.perfil.PantallaPerfil
+import com.example.lactacare.vistas.theme.AdminBackground
+import com.example.lactacare.vistas.theme.AdminPrimary
+import com.example.lactacare.vistas.theme.DoctorBackground
+import com.example.lactacare.vistas.theme.DoctorPrimary
+import com.example.lactacare.vistas.theme.MomAccent
+import com.example.lactacare.vistas.theme.MomPrimary
+import com.example.lactacare.vistas.theme.TextoOscuroClean
 
 @Composable
 fun PantallaHome(
-    rolUsuario: RolUsuario, // <--- Este dato lo usaremos abajo
+    rolUsuario: RolUsuario,
     onLogout: () -> Unit,
+    // --- CORRECCIÓN AQUÍ ---
+    // Renombrado de 'onNavegarANuevaReserva' a 'onNavReservas' para coincidir con MainActivity
     onNavReservas: () -> Unit = {},
+    onNavegarADetalleReserva: () -> Unit = {},
     onNavBebe: () -> Unit = {},
     onNavInfo: (String) -> Unit = {},
 
     viewModel: HomeViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
-
-            // Necesitamos el contexto para el repositorio real
-            val context = androidx.compose.ui.platform.LocalContext.current.applicationContext
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return HomeViewModel(
                     pacienteRepo = MockPacienteRepository(),
                     medicoRepo = MockMedicoRepository(),
                     adminRepo = MockAdminRepository(),
-                    authRepository = AuthRepositoryImpl(context),
+                    reservaRepo = MockReservasRepository(),
+                    bebeRepo = MockBebeRepository()
                 ) as T
             }
         }
     )
 ) {
-    LaunchedEffect(rolUsuario) {
-        viewModel.setRol(rolUsuario)
-    }
+    LaunchedEffect(rolUsuario) { viewModel.setRol(rolUsuario) }
 
     val seccionActual by viewModel.seccionActual.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
@@ -68,46 +71,64 @@ fun PantallaHome(
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-        ) {
-            // CABECERA: Solo se muestra en "Inicio"
+        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+
+            // TopBar dinámica
             if (seccionActual.id == "inicio") {
-                TopBarHome(
-                    saludo = uiState.nombreUsuario,
-                    colorIcono = TextoOscuroClean
-                )
+                TopBarHome(saludo = uiState.nombreUsuario, colorIcono = TextoOscuroClean)
             }
 
             Box(modifier = Modifier.weight(1f)) {
                 when (seccionActual.id) {
+                    // 1. DASHBOARD PRINCIPAL (Inicio)
                     "inicio" -> {
                         when (rolUsuario) {
                             RolUsuario.PACIENTE -> DashboardPaciente(
                                 colorPrimary = colorPrincipal,
                                 colorAccent = colorAcento,
+                                nombreUsuario = uiState.nombreUsuario,
+                                proximaCita = uiState.proximaReserva,
+                                nombreBebe = uiState.nombreBebe,
+                                // Pasamos el parámetro corregido aquí:
                                 onNavReservas = onNavReservas,
                                 onNavBebe = onNavBebe,
                                 onNavInfo = onNavInfo
                             )
+
                             RolUsuario.DOCTOR -> DashboardDoctor(colorPrincipal, colorAcento)
-                            RolUsuario.ADMINISTRADOR -> DashboardAdmin(colorPrincipal, colorAcento)
+
+                            RolUsuario.ADMINISTRADOR -> DashboardAdmin(
+                                colorPrincipal = colorPrincipal,
+                                colorAcento = colorAcento,
+                                stats = uiState.datosAdmin,
+                                onNavGestion = { viewModel.seleccionarSeccion(com.example.lactacare.vistas.navegacion.ItemMenu.Lactarios) },
+                                onNavReportes = { /* Acción futura */ }
+                            )
                         }
                     }
 
-                    // --- SECCIONES SECUNDARIAS ---
+                    // 2. SECCIONES DE ADMIN
+                    "Lactarios" -> {
+                        // Asegúrate de tener importada esta pantalla o usa la ruta completa si no la has movido
+                        com.example.lactacare.vistas.admin.PantallaGestionLactarios(
+                            onVolver = { viewModel.seleccionarSeccion(com.example.lactacare.vistas.navegacion.ItemMenu.Inicio) }
+                        )
+                    }
+
+                    "empleados" -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Pantalla Gestión de Empleados", color = Color.Gray)
+                        }
+                    }
+
+                    // 3. SECCIONES COMUNES
                     "chatbot" -> PantallaChat()
                     "registros" -> PantallaInventario()
+                    "perfil" -> PantallaPerfil(rolUsuario = rolUsuario, onLogout = onLogout)
 
-                    // --- AQUÍ ESTABA EL ERROR ---
-                    "perfil" -> PantallaPerfil(
-                        rolUsuario = rolUsuario, // <--- ¡AHORA SÍ LE PASAMOS EL ROL!
-                        onLogout = onLogout
-                    )
-
-                    else -> Box(modifier = Modifier.fillMaxSize()) { Text("En construcción") }
+                    else -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("En construcción: ${seccionActual.titulo}")
+                    }
                 }
             }
         }

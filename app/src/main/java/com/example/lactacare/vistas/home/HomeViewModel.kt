@@ -2,41 +2,47 @@ package com.example.lactacare.vistas.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.lactacare.datos.repository.AuthRepositoryImpl
-import com.example.lactacare.dominio.AdminRepository
-import com.example.lactacare.dominio.MedicoRepository
-import com.example.lactacare.dominio.PacienteRepository
-import com.example.lactacare.dominio.RolUsuario
+import com.example.lactacare.dominio.model.DashboardAdminStats
+import com.example.lactacare.dominio.model.Reservas
+import com.example.lactacare.dominio.model.RolUsuario
+import com.example.lactacare.dominio.repository.AdminRepository
+import com.example.lactacare.dominio.repository.BebeRepository
+import com.example.lactacare.dominio.repository.MedicoRepository
+import com.example.lactacare.dominio.repository.PacienteRepository
+import com.example.lactacare.dominio.repository.ReservasRepository
 import com.example.lactacare.vistas.navegacion.ItemMenu
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-// Estado para la UI del Home (Nombre, saludo, carga)
+// 1. ACTUALIZAMOS EL ESTADO PARA INCLUIR ADMIN
 data class HomeUiState(
-    val nombreUsuario: String = "Usuario",
-    val isLoading: Boolean = false
+    val nombreUsuario: String = "Cargando...",
+    val isLoading: Boolean = false,
 
+    // Datos Paciente
+    val proximaReserva: Reservas? = null,
+    val nombreBebe: String? = null,
+
+    // Datos Admin (NUEVO)
+    val datosAdmin: DashboardAdminStats? = null
 )
 
 class HomeViewModel(
     private val pacienteRepo: PacienteRepository,
     private val medicoRepo: MedicoRepository,
     private val adminRepo: AdminRepository,
-    private val authRepository: AuthRepositoryImpl // Inyectamos el repo de auth
+    private val reservaRepo: ReservasRepository,
+    private val bebeRepo: BebeRepository
 ) : ViewModel() {
 
-    // Estado del Rol actual
     private val _rolActual = MutableStateFlow(RolUsuario.PACIENTE)
     val rolActual: StateFlow<RolUsuario> = _rolActual.asStateFlow()
 
-    // Estado de la Sección seleccionada
     private val _seccionActual = MutableStateFlow<ItemMenu>(ItemMenu.Inicio)
     val seccionActual: StateFlow<ItemMenu> = _seccionActual.asStateFlow()
 
-
-    // Nuevo: Estado de Datos de Usuario (Para quitar el hardcode)
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
@@ -45,38 +51,57 @@ class HomeViewModel(
         cargarDatosUsuario(rol)
     }
 
-    // ... dentro de HomeViewModel ...
-
     private fun cargarDatosUsuario(rol: RolUsuario) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
+            val idUsuario = 1 // Simulamos usuario logueado
 
-            // Obtenemos el ID real de la sesión actual
-            val session = authRepository.getCurrentSession()
-            val userId = session?.userId?.toInt() ?: -1
-
-            val nombreRecuperado = if (userId != -1) {
-                when (rol) {
-                    RolUsuario.PACIENTE -> {
-                        val paciente = pacienteRepo.obtenerPacientePorId(userId)
-                        if (paciente != null) "Hola, ${paciente.primerNombre}" else "Hola, Mamá"
-                    }
-                    RolUsuario.DOCTOR -> {
-                        val medico = medicoRepo.obtenerMedicoPorId(userId)
-                        if (medico != null) "Dr. ${medico.primerNombre}" else "Dr. Especialista"
-                    }
-                    RolUsuario.ADMINISTRADOR -> {
-                        val admin = adminRepo.obtenerAdminPorId(userId)
-                        if (admin != null) "Admin. ${admin.primerNombre}" else "Administrador"
-                    }
+            // A. Cargar Nombre según Rol (Tu lógica original)
+            val nombreRecuperado = when (rol) {
+                RolUsuario.PACIENTE -> {
+                    val p = pacienteRepo.obtenerPacientePorId(idUsuario)
+                    p?.primerNombre ?: "Mamá"
                 }
-            } else {
-                "Bienvenida"
+                RolUsuario.DOCTOR -> {
+                    val m = medicoRepo.obtenerMedicoPorId(idUsuario)
+                    "Dr. ${m?.primerNombre ?: "Especialista"}"
+                }
+                RolUsuario.ADMINISTRADOR -> {
+                    val a = adminRepo.obtenerAdminPorId(idUsuario)
+                    "Admin. ${a?.primerNombre ?: "Sistema"}"
+                }
             }
 
+            // B. Variables para los datos específicos
+            var proximaCita: Reservas? = null
+            var miBebe: String? = null
+            var statsAdmin: DashboardAdminStats? = null // Variable para admin
+
+            // C. Cargar datos específicos según el rol
+            when (rol) {
+                RolUsuario.PACIENTE -> {
+                    proximaCita = reservaRepo.obtenerProximaReservaPaciente(idUsuario)
+                    val bebes = bebeRepo.obtenerBebesPorFamiliar(idUsuario)
+                    if (bebes.isNotEmpty()) {
+                        miBebe = bebes[0].nombre
+                    }
+                }
+                RolUsuario.ADMINISTRADOR -> {
+                    // AQUÍ LLAMAMOS A LA NUEVA LÓGICA
+                    statsAdmin = adminRepo.obtenerEstadisticas()
+                }
+                RolUsuario.DOCTOR -> {
+                    // Pendiente: cargar agenda doctor
+                }
+            }
+
+            // D. Actualizar el estado con TODO
             _uiState.value = HomeUiState(
-                nombreUsuario = nombreRecuperado,
-                isLoading = false
+                nombreUsuario = "Hola, $nombreRecuperado",
+                isLoading = false,
+                proximaReserva = proximaCita,
+                nombreBebe = miBebe,
+                datosAdmin = statsAdmin // Guardamos los datos del admin
             )
         }
     }
@@ -89,7 +114,7 @@ class HomeViewModel(
         return when (rol) {
             RolUsuario.PACIENTE -> listOf(ItemMenu.Inicio, ItemMenu.Chatbot, ItemMenu.Registros, ItemMenu.Perfil)
             RolUsuario.DOCTOR -> listOf(ItemMenu.Inicio, ItemMenu.Agenda, ItemMenu.Pacientes, ItemMenu.Perfil)
-            RolUsuario.ADMINISTRADOR -> listOf(ItemMenu.Inicio, ItemMenu.Empleados, ItemMenu.Reportes, ItemMenu.Perfil)
+            RolUsuario.ADMINISTRADOR -> listOf(ItemMenu.Inicio, ItemMenu.Empleados, ItemMenu.Lactarios, ItemMenu.Perfil)
         }
     }
 }

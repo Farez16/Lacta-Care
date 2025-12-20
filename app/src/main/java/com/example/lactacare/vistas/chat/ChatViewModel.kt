@@ -3,8 +3,8 @@ package com.example.lactacare.vistas.chat
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.lactacare.dominio.ChatIA
-import com.example.lactacare.dominio.ChatIARepository
+import com.example.lactacare.dominio.model.ChatIA
+import com.example.lactacare.dominio.repository.ChatIARepository
 import kotlinx.coroutines.launch
 import java.util.UUID
 

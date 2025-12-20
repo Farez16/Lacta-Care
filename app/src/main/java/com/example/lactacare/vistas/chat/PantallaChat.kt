@@ -23,10 +23,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lactacare.datos.MockChatIARepository
 // CORRECCIÓN: Importamos la entidad correcta 'ChatIA'
-import com.example.lactacare.dominio.ChatIA
-import com.example.lactacare.theme.*
+import com.example.lactacare.dominio.model.ChatIA
 import com.example.lactacare.vistas.auth.BordeGrisClean
 import com.example.lactacare.vistas.auth.TextoOscuroClean
+import com.example.lactacare.vistas.theme.MomPrimary
 
 @Composable
 fun PantallaChat(

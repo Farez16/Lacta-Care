@@ -31,7 +31,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.lactacare.dominio.RolUsuario
+import com.example.lactacare.dominio.model.RolUsuario
 import androidx.compose.ui.platform.LocalContext
 import java.time.Instant
 import java.time.LocalDate // IMPORTADO

@@ -1,4 +1,4 @@
-package com.example.lactacare.theme
+package com.example.lactacare.vistas.theme
 
 import androidx.compose.ui.graphics.Color
 

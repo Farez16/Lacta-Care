@@ -2,10 +2,10 @@ package com.example.lactacare.vistas.lactarios
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.lactacare.dominio.Lactario
-import com.example.lactacare.dominio.LactarioRepository
+import com.example.lactacare.dominio.model.Lactario
+import com.example.lactacare.dominio.repository.LactarioRepository
 // 1. NUEVO IMPORT
-import com.example.lactacare.dominio.ReservasRepository
+import com.example.lactacare.dominio.repository.ReservasRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

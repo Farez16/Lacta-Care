@@ -1,10 +1,13 @@
-package com.example.lactacare.datos.model
+package com.example.lactacare.datos.datos.local
+
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.example.lactacare.datos.dto.AuthResponse
+import com.example.lactacare.datos.dto.UserSession
+import com.example.lactacare.dominio.model.RolUsuario
 import com.google.gson.Gson
-import com.example.lactacare.dominio.RolUsuario
 
 /**
  * Gestor de sesión de usuario
@@ -46,7 +49,7 @@ class SessionManager(context: Context) {
             userId = userInfo.id,
             correo = userInfo.correo,
             nombreCompleto = userInfo.nombreCompleto,
-            rol = RolUsuario.fromString(userInfo.rol),
+            rol = RolUsuario.Companion.fromString(userInfo.rol),
             accessToken = authResponse.accessToken,
             refreshToken = authResponse.refreshToken,
             tokenExpiration = System.currentTimeMillis() + (authResponse.expiresIn * 1000),

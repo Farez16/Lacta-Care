@@ -1,29 +1,43 @@
 package com.example.lactacare.datos
 
-import com.example.lactacare.dominio.Administrador
-import com.example.lactacare.dominio.AdminRepository
+import com.example.lactacare.dominio.*
+import com.example.lactacare.dominio.model.ActividadAdmin
+import com.example.lactacare.dominio.model.Administrador
+import com.example.lactacare.dominio.model.DashboardAdminStats
+import com.example.lactacare.dominio.repository.AdminRepository
 import kotlinx.coroutines.delay
 
 class MockAdminRepository : AdminRepository {
 
+    private val listaActividades = listOf(
+        ActividadAdmin(1, "Mantenimiento Sala 3", "Reporte de limpieza pendiente", "ALERTA"),
+        ActividadAdmin(2, "Nuevo Doctor Registrado", "Dr. Juan Pérez (Pediatría)", "NUEVO"),
+        ActividadAdmin(3, "Reserva Cancelada", "Paciente Maria L. - 10:00 AM", "INFO"),
+        ActividadAdmin(4, "Stock Bajo", "Frascos estériles en Recepción", "ALERTA")
+    )
+
     override suspend fun obtenerAdminPorId(id: Int): Administrador? {
         delay(500)
-        // Usamos EXACTAMENTE los campos de tu data class Administrador
         return Administrador(
             idEmpleado = 1,
             cedula = "0999999999",
-            primerNombre = "Ana",       // Se mostrará en el Home
-            segundoNombre = "Lucia",
+            primerNombre = "Ana",
             primerApellido = "Gomez",
-            segundoApellido = "Ruiz",
             correo = "admin@sistema.com",
-            telefono = "0987654321",
-            fechaNacimiento = "1990-05-15",
-            fotoPerfil = "",
-            password = "admin",
-            // Campos específicos de Admin
+            // departamento = "Tecnología",  <-- ¡ESTA ERA LA LÍNEA QUE CAUSABA EL ERROR! (BORRADA)
             codigoEmpleado = "ADM-2025",
+            fotoPerfil = ""
+        )
+    }
 
+    override suspend fun obtenerEstadisticas(): DashboardAdminStats {
+        delay(1000)
+        return DashboardAdminStats(
+            totalUsuarios = 1240,
+            totalDoctores = 45,
+            citasHoy = 89,
+            alertasActivas = 3,
+            actividadesRecientes = listaActividades
         )
     }
 
@@ -32,7 +46,6 @@ class MockAdminRepository : AdminRepository {
         return Result.success(true)
     }
 
-    // Obligatorio para cumplir con la interfaz
     override suspend fun registrar(admin: Administrador): Result<Boolean> {
         delay(1500)
         return Result.success(true)

@@ -28,10 +28,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.lactacare.datos.MockBebeRepository
-import com.example.lactacare.dominio.Bebe
-import com.example.lactacare.theme.MomPrimary
-import com.example.lactacare.theme.MomAccent
-import com.example.lactacare.theme.TextoOscuroClean
+import com.example.lactacare.dominio.model.Bebe
+import com.example.lactacare.vistas.theme.MomPrimary
+import com.example.lactacare.vistas.theme.MomAccent
+import com.example.lactacare.vistas.theme.TextoOscuroClean
 
 // --- COLORES SUAVES (Estilo Maternal/Clean) ---
 val SoftPinkBg = Color(0xFFFFF5F7) // Fondo general

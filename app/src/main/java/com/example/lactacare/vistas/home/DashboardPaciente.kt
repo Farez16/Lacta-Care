@@ -1,6 +1,5 @@
 package com.example.lactacare.vistas.home
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,20 +15,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberAsyncImagePainter
-import com.example.lactacare.dominio.Reservas
-import com.example.lactacare.theme.DashboardBg
-import com.example.lactacare.theme.DashboardPinkIcon
-import com.example.lactacare.theme.DashboardTextDark
-import com.example.lactacare.theme.DashboardTextLight
-import com.example.lactacare.theme.MomAccent
-import com.example.lactacare.theme.MomPrimary
+import com.example.lactacare.dominio.model.Reservas
+import com.example.lactacare.vistas.theme.DashboardBg
+import com.example.lactacare.vistas.theme.DashboardPinkIcon
+import com.example.lactacare.vistas.theme.DashboardTextDark
+import com.example.lactacare.vistas.theme.DashboardTextLight
+import com.example.lactacare.vistas.theme.MomAccent
+import com.example.lactacare.vistas.theme.MomPrimary
 
 @Composable
 fun DashboardPaciente(

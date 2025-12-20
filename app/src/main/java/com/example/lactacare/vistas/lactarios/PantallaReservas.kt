@@ -29,8 +29,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.lactacare.datos.MockLactarioRepository
 import com.example.lactacare.datos.MockReservasRepository
-import com.example.lactacare.dominio.Lactario
-import com.example.lactacare.theme.*
+import com.example.lactacare.dominio.model.Lactario
+import com.example.lactacare.vistas.theme.LactarioBg
+import com.example.lactacare.vistas.theme.MintPrimary
+import com.example.lactacare.vistas.theme.SoftPink
+import com.example.lactacare.vistas.theme.StatusGreen
+import com.example.lactacare.vistas.theme.StatusRed
+import com.example.lactacare.vistas.theme.StatusYellow
+import com.example.lactacare.vistas.theme.TextoOscuroClean
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -1,5 +1,5 @@
-package com.example.lactacare.datos.model
-import com.example.lactacare.dominio.RolUsuario
+package com.example.lactacare.datos.dto
+import com.example.lactacare.dominio.model.RolUsuario
 
 /**
  * Modelo de sesión del usuario (para guardar localmente)

@@ -18,7 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.lactacare.dominio.RolUsuario
+import com.example.lactacare.dominio.model.RolUsuario
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -1,4 +1,6 @@
-package com.example.lactacare.dominio
+package com.example.lactacare.dominio.repository
+
+import com.example.lactacare.dominio.model.Medico
 
 interface MedicoRepository {
     suspend fun registrar(medico: Medico): Result<Boolean>

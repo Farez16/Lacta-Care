@@ -1,4 +1,4 @@
-package com.example.lactacare.dominio
+package com.example.lactacare.dominio.model
 
 data class Refrigerador(
     val id: Int,

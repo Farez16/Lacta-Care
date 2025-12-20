@@ -3,8 +3,8 @@ package com.example.lactacare.vistas.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lactacare.datos.MockPacienteRepository
-import com.example.lactacare.dominio.RolUsuario
-import com.example.lactacare.dominio.PacienteRepository
+import com.example.lactacare.dominio.model.RolUsuario
+import com.example.lactacare.dominio.repository.PacienteRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch

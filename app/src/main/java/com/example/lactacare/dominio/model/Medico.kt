@@ -1,7 +1,9 @@
-package com.example.lactacare.dominio
+package com.example.lactacare.dominio.model
 
-data class Administrador(
-    val idEmpleado: Int = 0, // Mismo caso: por defecto 0
+data class Medico(
+    // Ponemos 0 por defecto.
+    // Al registrar, valdrá 0. Al consultar perfil, valdrá lo que diga la DB.
+    val idEmpleado: Int = 0,
 
     val cedula: String = "",
     val primerNombre: String = "",
@@ -13,6 +15,7 @@ data class Administrador(
     val fechaNacimiento: String = "",
     val fotoPerfil: String = "",
     val password: String = "",
+
     // Específicos
-    val codigoEmpleado: String = "",
+    val licenciaMedica: String = "",
 )

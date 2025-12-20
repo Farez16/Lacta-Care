@@ -23,8 +23,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lactacare.datos.MockBebeRepository
-import com.example.lactacare.theme.MomPrimary
-import com.example.lactacare.theme.TextoOscuroClean
+import com.example.lactacare.vistas.theme.MomPrimary
+import com.example.lactacare.vistas.theme.TextoOscuroClean
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

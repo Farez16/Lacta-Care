@@ -1,4 +1,4 @@
-package com.example.lactacare.dominio
+package com.example.lactacare.dominio.model
 import com.google.gson.annotations.SerializedName
 data class Paciente(
     // Agregamos el ID como pediste (por defecto 0 para nuevos registros)

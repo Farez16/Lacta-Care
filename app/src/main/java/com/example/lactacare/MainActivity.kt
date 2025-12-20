@@ -21,8 +21,7 @@ import com.example.lactacare.vistas.bebe.PantallaMiBebe
 import com.example.lactacare.vistas.home.PantallaHome
 import com.example.lactacare.vistas.lactarios.PantallaDetalleInfo
 import com.example.lactacare.vistas.lactarios.PantallaLactario
-import com.example.lactacare.dominio.RolUsuario
-import com.example.lactacare.vistas.auth.PantallaCompletarPerfil
+import com.example.lactacare.dominio.model.RolUsuario
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lactacare.vistas.auth.AuthViewModel

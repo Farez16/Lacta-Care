@@ -24,5 +24,5 @@ sealed class ItemMenu(
 
     // 4. Ítems ADMIN
     object Empleados : ItemMenu("Empleados", Icons.Filled.Badge, "empleados")
-    object Reportes : ItemMenu("Reportes", Icons.Filled.Analytics, "reportes")
+    object Lactarios : ItemMenu("Lactarios", Icons.Filled.Analytics, "Lactarios")
 }

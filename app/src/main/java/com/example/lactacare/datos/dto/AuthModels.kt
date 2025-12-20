@@ -1,4 +1,4 @@
-package com.example.lactacare.datos.model
+package com.example.lactacare.datos.dto
 import com.google.gson.annotations.SerializedName
 // ==================== REQUEST MODELS ====================
 

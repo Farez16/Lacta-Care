@@ -1,8 +1,8 @@
 package com.example.lactacare.datos
 
-import com.example.lactacare.dominio.ContenedorLeche
-import com.example.lactacare.dominio.InventarioRepository
-import com.example.lactacare.dominio.Refrigerador
+import com.example.lactacare.dominio.model.ContenedorLeche
+import com.example.lactacare.dominio.repository.InventarioRepository
+import com.example.lactacare.dominio.model.Refrigerador
 import kotlinx.coroutines.delay
 
 class MockInventarioRepository : InventarioRepository {

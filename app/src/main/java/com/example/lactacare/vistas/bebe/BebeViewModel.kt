@@ -2,8 +2,8 @@ package com.example.lactacare.vistas.bebe
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.lactacare.dominio.Bebe
-import com.example.lactacare.dominio.BebeRepository
+import com.example.lactacare.dominio.model.Bebe
+import com.example.lactacare.dominio.repository.BebeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

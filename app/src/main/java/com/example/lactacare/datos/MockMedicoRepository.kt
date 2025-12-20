@@ -1,7 +1,7 @@
 package com.example.lactacare.datos
 
-import com.example.lactacare.dominio.Medico
-import com.example.lactacare.dominio.MedicoRepository
+import com.example.lactacare.dominio.model.Medico
+import com.example.lactacare.dominio.repository.MedicoRepository
 import kotlinx.coroutines.delay
 
 class MockMedicoRepository : MedicoRepository {

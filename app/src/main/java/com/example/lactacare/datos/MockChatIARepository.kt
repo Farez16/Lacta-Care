@@ -1,7 +1,7 @@
 package com.example.lactacare.datos
 
-import com.example.lactacare.dominio.ChatIA
-import com.example.lactacare.dominio.ChatIARepository
+import com.example.lactacare.dominio.model.ChatIA
+import com.example.lactacare.dominio.repository.ChatIARepository
 import kotlinx.coroutines.delay
 import java.util.UUID
 

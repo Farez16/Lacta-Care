@@ -26,20 +26,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lactacare.datos.MockInventarioRepository
-import com.example.lactacare.dominio.ContenedorLeche
-import com.example.lactacare.theme.TextoOscuroClean
-import com.example.lactacare.theme.InvAmberBg
-import com.example.lactacare.theme.InvFondo
-import com.example.lactacare.theme.InvPinkPrimary
-import com.example.lactacare.theme.InvPinkSoft
-import com.example.lactacare.theme.InvGreenText
-import com.example.lactacare.theme.InvGreenBg
-import com.example.lactacare.theme.InvBlueText
-import com.example.lactacare.theme.InvBlueBg
-import com.example.lactacare.theme.InvRedText
-import com.example.lactacare.theme.InvRedBg
-import com.example.lactacare.theme.InvZincText
-import com.example.lactacare.theme.InvZincBg
+import com.example.lactacare.dominio.model.ContenedorLeche
+import com.example.lactacare.vistas.theme.TextoOscuroClean
+import com.example.lactacare.vistas.theme.InvAmberBg
+import com.example.lactacare.vistas.theme.InvFondo
+import com.example.lactacare.vistas.theme.InvPinkPrimary
+import com.example.lactacare.vistas.theme.InvPinkSoft
+import com.example.lactacare.vistas.theme.InvGreenText
+import com.example.lactacare.vistas.theme.InvGreenBg
+import com.example.lactacare.vistas.theme.InvBlueText
+import com.example.lactacare.vistas.theme.InvBlueBg
+import com.example.lactacare.vistas.theme.InvRedText
+import com.example.lactacare.vistas.theme.InvRedBg
+import com.example.lactacare.vistas.theme.InvZincText
+import com.example.lactacare.vistas.theme.InvZincBg
 
 
 

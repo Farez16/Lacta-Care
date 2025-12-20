@@ -1,6 +1,6 @@
 package com.example.lactacare.datos.repository
 
-import com.example.lactacare.dominio.RolUsuario
+import com.example.lactacare.dominio.model.RolUsuario
 
 /**
  * Validador de roles para asegurar que los usuarios solo puedan

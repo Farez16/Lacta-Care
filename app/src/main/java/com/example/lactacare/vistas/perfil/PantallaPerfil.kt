@@ -27,10 +27,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.example.lactacare.dominio.RolUsuario
-import com.example.lactacare.theme.*
+import com.example.lactacare.dominio.model.RolUsuario
 import com.example.lactacare.vistas.auth.BordeGrisClean
 import com.example.lactacare.vistas.auth.TextoOscuroClean
+import com.example.lactacare.vistas.theme.AdminBackground
+import com.example.lactacare.vistas.theme.AdminPrimary
+import com.example.lactacare.vistas.theme.DoctorBackground
+import com.example.lactacare.vistas.theme.DoctorPrimary
+import com.example.lactacare.vistas.theme.MomAccent
+import com.example.lactacare.vistas.theme.MomPrimary
+
 
 
 @Composable

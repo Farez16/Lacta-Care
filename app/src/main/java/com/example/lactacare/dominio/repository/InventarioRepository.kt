@@ -1,4 +1,7 @@
-package com.example.lactacare.dominio
+package com.example.lactacare.dominio.repository
+
+import com.example.lactacare.dominio.model.ContenedorLeche
+import com.example.lactacare.dominio.model.Refrigerador
 
 interface InventarioRepository {
     // Obtener la estructura física (Refrigeradores)

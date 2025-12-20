@@ -12,9 +12,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.lactacare.theme.*
 import com.example.lactacare.vistas.auth.FondoBlancoClean
 import com.example.lactacare.vistas.auth.TextoOscuroClean
+import com.example.lactacare.vistas.theme.MomPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

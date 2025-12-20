@@ -1,78 +1,67 @@
 package com.example.lactacare.datos
 
-import com.example.lactacare.dominio.Institucion
-import com.example.lactacare.dominio.Lactario
-import com.example.lactacare.dominio.LactarioRepository
+import com.example.lactacare.dominio.model.Institucion
+import com.example.lactacare.dominio.model.Lactario
+import com.example.lactacare.dominio.repository.LactarioRepository
 import kotlinx.coroutines.delay
 
 class MockLactarioRepository : LactarioRepository {
 
-    // Datos maestros en memoria
-    private val listaLactarios = listOf(
-        Lactario(
-            id = 1,
-            nombre = "Sala 3A - Principal",
-            direccion = "Piso 3, Bloque A",
-            correo = "sala3a@hosp.com",
-            telefono = "0991234567",
-            latitud = "-2.90055",
-            longitud = "-79.00245",
-            idInstitucion = 100
-        ),
-        Lactario(
-            id = 2,
-            nombre = "Sala 2B - RRHH",
-            direccion = "Piso 2, Oficina 204",
-            correo = "rrhh@hosp.com",
-            telefono = "0987654321",
-            latitud = "-2.90100",
-            longitud = "-79.00300",
-            idInstitucion = 100
-        ),
-        Lactario(
-            id = 3,
-            nombre = "Sala 1 - Recepción",
-            direccion = "Planta Baja",
-            correo = "recepcion@hosp.com",
-            telefono = "0981122334",
-            latitud = "-2.89900",
-            longitud = "-79.00100",
-            idInstitucion = 100
-        ),
-        Lactario(
-            id = 4,
-            nombre = "Lactario Sur",
-            direccion = "Bloque Sur, Cafetería",
-            correo = "sur@hosp.com",
-            telefono = "0999999999",
-            latitud = "-2.90500",
-            longitud = "-79.00500",
-            idInstitucion = 101
+    // --- CORRECCIÓN CLAVE ---
+    // Movemos la lista al Companion Object para que sea "Global" en la memoria
+    // Así, si sales de la pantalla y vuelves, los datos (y tus ediciones) siguen ahí.
+    companion object {
+        private val dbLactarios = mutableListOf(
+            Lactario(1, "Sala 3A - Principal", "Piso 3, Bloque A", "sala3a@hosp.com", "0991234567", "-2.90055", "-79.00245", 100),
+            Lactario(2, "Sala 2B - RRHH", "Piso 2, Oficina 204", "rrhh@hosp.com", "0987654321", "-2.90100", "-79.00300", 100),
+            Lactario(3, "Sala 1 - Recepción", "Planta Baja", "recepcion@hosp.com", "0981122334", "-2.89900", "-79.00100", 100),
+            Lactario(4, "Lactario Sur", "Bloque Sur, Cafetería", "sur@hosp.com", "0999999999", "-2.90500", "-79.00500", 101)
         )
-    )
+    }
 
-    // 1. Obtener Lactarios (Tu función principal)
     override suspend fun obtenerLactarios(): List<Lactario> {
         delay(500)
-        return listaLactarios
+        return dbLactarios.toList()
     }
 
-    // 2. Obtener por ID
     override suspend fun obtenerLactarioPorId(id: Int): Lactario? {
         delay(200)
-        return listaLactarios.find { it.id == id }
+        return dbLactarios.find { it.id == id }
     }
 
-    // 3. Obtener Todos (Esta faltaba y es redundante con la 1, pero la pide la interfaz)
     override suspend fun obtenerTodos(): List<Lactario> {
-        return listaLactarios // Devolvemos la misma lista
+        return dbLactarios.toList()
     }
 
-    // 4. Obtener Instituciones (Esta faltaba)
     override suspend fun obtenerInstituciones(): List<Institucion> {
-        delay(500)
-        // Retornamos lista vacía por ahora para que compile,
-        // ya que no estamos usando pantalla de instituciones todavía.
         return emptyList()
+    }
+
+    override suspend fun guardarLactario(lactario: Lactario): Boolean {
+        delay(800)
+        return if (lactario.id == 0) {
+            val nuevoId = (dbLactarios.maxOfOrNull { it.id } ?: 0) + 1
+            dbLactarios.add(lactario.copy(id = nuevoId))
+            true
+        } else {
+            val index = dbLactarios.indexOfFirst { it.id == lactario.id }
+            if (index != -1) {
+                dbLactarios[index] = lactario
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    override suspend fun eliminarLactario(id: Int): Boolean {
+        delay(500)
+        val item = dbLactarios.find { it.id == id }
+        return if (item != null) {
+            dbLactarios.remove(item)
+            true
+        } else {
+            false
+        }
     }
 }

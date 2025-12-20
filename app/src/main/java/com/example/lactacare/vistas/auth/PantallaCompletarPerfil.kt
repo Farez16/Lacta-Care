@@ -1,6 +1,5 @@
 package com.example.lactacare.vistas.auth
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,8 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.example.lactacare.datos.model.GoogleUserData
-import com.example.lactacare.dominio.RolUsuario
+import com.example.lactacare.datos.dto.GoogleUserData
+import com.example.lactacare.dominio.model.RolUsuario
 
 @Composable
 fun PantallaCompletarPerfil(
@@ -276,7 +275,7 @@ fun PantallaCompletarPerfil(
             // BOTÓN COMPLETAR
             Button(
                 onClick = {
-                    val request = com.example.lactacare.datos.model.CompleteProfileRequest(
+                    val request = com.example.lactacare.datos.dto.CompleteProfileRequest(
                         googleId = googleUserData.googleId,
                         cedula = cedula,
                         primerNombre = primerNombre,

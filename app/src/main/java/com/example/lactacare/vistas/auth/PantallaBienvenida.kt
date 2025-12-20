@@ -21,7 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.lactacare.dominio.RolUsuario
+import com.example.lactacare.dominio.model.RolUsuario
 
 // --- COLORES EXTRAÍDOS DE TU HTML ---
 

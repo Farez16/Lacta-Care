@@ -35,8 +35,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.lactacare.dominio.RolUsuario
-import com.example.lactacare.datos.model.AuthState
+import com.example.lactacare.dominio.model.RolUsuario
+import com.example.lactacare.datos.dto.AuthState
 
 // COLORES EXTRAÍDOS
 val SlateGray = Color(0xFF546E7A)

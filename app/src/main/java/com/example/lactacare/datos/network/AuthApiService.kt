@@ -1,6 +1,6 @@
 package com.example.lactacare.datos.network
 
-import com.example.lactacare.datos.model.*
+import com.example.lactacare.datos.dto.*
 import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import retrofit2.http.*

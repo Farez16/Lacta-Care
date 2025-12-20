@@ -98,9 +98,9 @@ fun PantallaBienvenida(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp) // Espacio entre tarjetas
         ) {
-            // Tarjeta USUARIO
+            // Tarjeta Paciente
             TarjetaRol(
-                titulo = "Usuario",
+                titulo = "Paciente",
                 icono = Icons.Outlined.ChildCare,
                 colorIcono = AccentUser,
                 onClick = { onRolSeleccionado(RolUsuario.PACIENTE) }

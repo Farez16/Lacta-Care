@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lactacare.datos.MockAdminRepository
 import com.example.lactacare.datos.MockMedicoRepository
 import com.example.lactacare.datos.MockPacienteRepository
+import com.example.lactacare.datos.repository.AuthRepositoryImpl
 import com.example.lactacare.dominio.RolUsuario
 import com.example.lactacare.theme.*
 import com.example.lactacare.vistas.chat.PantallaChat
@@ -27,11 +28,15 @@ fun PantallaHome(
 
     viewModel: HomeViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
+
+            // Necesitamos el contexto para el repositorio real
+            val context = androidx.compose.ui.platform.LocalContext.current.applicationContext
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return HomeViewModel(
                     pacienteRepo = MockPacienteRepository(),
                     medicoRepo = MockMedicoRepository(),
-                    adminRepo = MockAdminRepository()
+                    adminRepo = MockAdminRepository(),
+                    authRepository = AuthRepositoryImpl(context),
                 ) as T
             }
         }

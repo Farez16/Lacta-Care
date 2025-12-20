@@ -18,5 +18,4 @@ data class Medico(
 
     // Específicos
     val licenciaMedica: String = "",
-    val especialidad: String = ""
 )

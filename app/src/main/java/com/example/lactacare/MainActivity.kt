@@ -1,52 +1,62 @@
 package com.example.lactacare
 
-// NOTA: No importamos 'android.os.Bundle' aquí para evitar conflictos.
-
+import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-
-// Imports de tus vistas y dominio
-import com.example.lactacare.dominio.RolUsuario
-// import com.example.lactacare.theme.LactaCareTheme // <--- Eliminado, usamos MaterialTheme directo
-import com.example.lactacare.vistas.auth.LoginViewModel
+import com.example.lactacare.datos.repository.AuthRepositoryImpl
 import com.example.lactacare.vistas.auth.PantallaBienvenida
 import com.example.lactacare.vistas.auth.PantallaLogin
 import com.example.lactacare.vistas.auth.PantallaRegistroPersona
-import com.example.lactacare.vistas.auth.RegistroPersonaViewModel
 import com.example.lactacare.vistas.bebe.PantallaAnadirBebe
 import com.example.lactacare.vistas.bebe.PantallaMiBebe
 import com.example.lactacare.vistas.home.PantallaHome
 import com.example.lactacare.vistas.lactarios.PantallaDetalleInfo
 import com.example.lactacare.vistas.lactarios.PantallaLactario
-import com.example.lactacare.vistas.lactarios.PantallaReservas
+import com.example.lactacare.dominio.RolUsuario
+import com.example.lactacare.vistas.auth.PantallaCompletarPerfil
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.lactacare.vistas.auth.AuthViewModel
+import com.example.lactacare.vistas.auth.PantallaRecuperarPassword
+import com.example.lactacare.vistas.auth.RegistroPersonaViewModel
 
 class MainActivity : ComponentActivity() {
 
-    // Usamos el nombre completo 'android.os.Bundle' para evitar ambigüedades
-    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
-            // CORRECCIÓN: Usamos MaterialTheme directo (el estándar de Android)
             MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
                     val navController = rememberNavController()
+                    val context = LocalContext.current
+                    val authRepository = AuthRepositoryImpl(this)
 
-                    NavHost(navController = navController, startDestination = "bienvenida") {
+                    // Verificar si hay sesión activa
+                    val startDestination = if (authRepository.isLoggedIn()) {
+                        val session = authRepository.getCurrentSession()
+                        "home/${session?.rol?.name ?: "PACIENTE"}"
+                    } else {
+                        "bienvenida"
+                    }
 
-                        // 1. PANTALLA DE BIENVENIDA
+                    NavHost(
+                        navController = navController,
+                        startDestination = startDestination
+                    ) {
+                        // 1. PANTALLA DE BIENVENIDA (Selección de Rol)
                         composable("bienvenida") {
                             PantallaBienvenida(
                                 onRolSeleccionado = { rol ->
@@ -54,32 +64,53 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+// NUEVA RUTA: Recuperar Contraseña con argumento de rol
+                        composable(
+                            route = "recuperar_password/{rolTexto}",
+                            arguments = listOf(navArgument("rolTexto") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val rolTexto = backStackEntry.arguments?.getString("rolTexto") ?: "PACIENTE"
+                            val rolEnum = RolUsuario.valueOf(rolTexto)
 
-                        // 2. PANTALLA DE LOGIN
+                            val authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory(context))
+
+                            PantallaRecuperarPassword(
+                                rolUsuario = rolEnum,
+                                viewModel = authViewModel,
+                                onVolver = { navController.navigateUp() }
+                            )
+                        }
+                        // 2. PANTALLA DE LOGIN (Con Google OAuth integrado)
                         composable(
                             route = "login/{rolTexto}",
                             arguments = listOf(navArgument("rolTexto") { type = NavType.StringType })
                         ) { backStackEntry ->
                             val rolTexto = backStackEntry.arguments?.getString("rolTexto") ?: "PACIENTE"
                             val rolEnum = RolUsuario.valueOf(rolTexto)
-                            val loginViewModel: LoginViewModel = viewModel()
 
-                            LaunchedEffect(rolEnum) { loginViewModel.setRol(rolEnum) }
+                            // Crear ViewModel con Factory
+                            val viewModel: AuthViewModel = viewModel(
+                                factory = AuthViewModel.Factory(context)
+                            )
 
-                            val loginExitoso by loginViewModel.loginExitoso.collectAsState()
-
-                            LaunchedEffect(loginExitoso) {
-                                if (loginExitoso) {
-                                    navController.navigate("home/$rolTexto") {
-                                        popUpTo("bienvenida") { inclusive = false }
-                                    }
-                                }
-                            }
+                            // Establecer el rol seleccionado
+                            viewModel.setRol(rolEnum)
 
                             PantallaLogin(
-                                viewModel = loginViewModel,
+                                viewModel = viewModel,
                                 onIrARegistro = { rol ->
                                     navController.navigate("registro/${rol.name}")
+                                },
+                                onIrARecuperarPassword = {
+                                    // Pasamos el rol actual para que la pantalla de recuperación tenga los colores correctos
+                                    navController.navigate("recuperar_password/${rolEnum.name}")
+                                },
+                                onLoginExitoso = {
+                                    val session = authRepository.getCurrentSession()
+                                    val rolActual = session?.rol?.name ?: rolEnum.name
+                                    navController.navigate("home/$rolActual") {
+                                        popUpTo("bienvenida") { inclusive = true }
+                                    }
                                 }
                             )
                         }
@@ -91,23 +122,18 @@ class MainActivity : ComponentActivity() {
                         ) { backStackEntry ->
                             val rolTexto = backStackEntry.arguments?.getString("rolTexto") ?: "PACIENTE"
                             val rolEnum = RolUsuario.valueOf(rolTexto)
-                            val registroViewModel: RegistroPersonaViewModel = viewModel()
 
-                            LaunchedEffect(rolEnum) { registroViewModel.setRol(rolEnum) }
-
-                            val mensaje by registroViewModel.mensaje.collectAsState()
-
-                            LaunchedEffect(mensaje) {
-                                if (mensaje?.contains("Exitoso", ignoreCase = true) == true) {
-                                    navController.navigate("home/$rolTexto") {
-                                        popUpTo("bienvenida") { inclusive = false }
-                                    }
-                                }
-                            }
+                            // Crear ViewModel para registro
+                            val viewModel: RegistroPersonaViewModel = viewModel(
+                                factory = RegistroPersonaViewModel.Factory(LocalContext.current)
+                            )
+                            viewModel.setRol(rolEnum)
 
                             PantallaRegistroPersona(
-                                viewModel = registroViewModel,
-                                onIrALogin = { navController.popBackStack() }
+                                viewModel = viewModel,
+                                onIrALogin = {
+                                    navController.popBackStack()
+                                }
                             )
                         }
 
@@ -122,11 +148,14 @@ class MainActivity : ComponentActivity() {
                             PantallaHome(
                                 rolUsuario = rolEnum,
                                 onLogout = {
+                                    // Cerrar sesión
+                                    kotlinx.coroutines.runBlocking {
+                                        authRepository.logout()
+                                    }
                                     navController.navigate("bienvenida") {
-                                        popUpTo(0)
+                                        popUpTo(0) { inclusive = true }
                                     }
                                 },
-                                // CONEXIÓN DE RUTAS DEL PACIENTE
                                 onNavReservas = { navController.navigate("reservas") },
                                 onNavBebe = { navController.navigate("mi_bebe") },
                                 onNavInfo = { titulo -> navController.navigate("info/$titulo") }
@@ -139,9 +168,12 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("mi_bebe") {
-                            PantallaMiBebe(onVolver = { navController.popBackStack() },
-                                onNavAnadirBebe = { navController.navigate("anadir_bebe") })
+                            PantallaMiBebe(
+                                onVolver = { navController.popBackStack() },
+                                onNavAnadirBebe = { navController.navigate("anadir_bebe") }
+                            )
                         }
+
                         composable("anadir_bebe") {
                             PantallaAnadirBebe(
                                 onVolver = { navController.popBackStack() }

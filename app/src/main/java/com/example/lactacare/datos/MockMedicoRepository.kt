@@ -17,7 +17,6 @@ class MockMedicoRepository : MedicoRepository {
             segundoApellido = "Lopez",
             correo = "doctor@hospital.com",
             telefono = "0991234567",
-            especialidad = "Pediatría",
             password = "admin"
         )
     }

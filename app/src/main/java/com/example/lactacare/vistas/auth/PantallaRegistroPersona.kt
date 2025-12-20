@@ -32,15 +32,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lactacare.dominio.RolUsuario
+import androidx.compose.ui.platform.LocalContext
+import java.time.Instant
+import java.time.LocalDate // IMPORTADO
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 // --- COLORES ESTILO CLEAN ---
 val TextoOscuroClean = Color(0xFF546E7A)
 val BordeGrisClean = Color(0xFFE0E0E0)
 val FondoBlancoClean = Color(0xFFFEFEFE)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaRegistroPersona(
-    viewModel: RegistroPersonaViewModel = viewModel(),
+    viewModel: RegistroPersonaViewModel = viewModel(
+        factory = RegistroPersonaViewModel.Factory(LocalContext.current)
+    ),
     onIrALogin: () -> Unit
 ) {
     // Datos del ViewModel
@@ -48,9 +56,80 @@ fun PantallaRegistroPersona(
     val rol by viewModel.rolActual.collectAsState()
     val cargando by viewModel.isLoading.collectAsState()
     val mensaje by viewModel.mensaje.collectAsState()
-
-    var password by remember { mutableStateOf("") }
+    val registroExitoso by viewModel.registroExitoso.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
+
+    // --- ESTADOS DEL CALENDARIO ---
+    var mostrarCalendario by remember { mutableStateOf(false) }
+    var errorEdad by remember { mutableStateOf<String?>(null) }
+
+    // Fecha máxima permitida (hoy - 18 años)
+    val fechaMaxima = remember {
+        LocalDate.now().minusYears(18)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+    }
+
+    // Estado del DatePicker
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = datos.fechaNacimiento.takeIf { it.isNotBlank() }?.let {
+            try {
+                LocalDate.parse(it)
+                    .atStartOfDay(ZoneId.systemDefault())
+                    .toInstant()
+                    .toEpochMilli()
+            } catch (e: Exception) { fechaMaxima }
+        } ?: fechaMaxima,
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                return utcTimeMillis <= fechaMaxima
+            }
+        }
+    )
+
+    // --- DIÁLOGO DEL CALENDARIO ---
+    if (mostrarCalendario) {
+        DatePickerDialog(
+            onDismissRequest = { mostrarCalendario = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val fechaSeleccionada = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate()
+
+                        if (esMayorDeEdad(fechaSeleccionada)) {
+                            val formato = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                            viewModel.onFechaNacimientoChange(
+                                fechaSeleccionada.format(formato)
+                            )
+                            errorEdad = null
+                            mostrarCalendario = false
+                        } else {
+                            errorEdad = "Debes tener al menos 18 años para registrarte"
+                        }
+                    }
+                }) {
+                    Text("OK", color = Color(0xFF546E7A)) // Ajustado temporalmente para evitar error si 'tema' no se ha declarado
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarCalendario = false }) {
+                    Text("Cancelar")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    LaunchedEffect(registroExitoso) {
+        if (registroExitoso) {
+            kotlinx.coroutines.delay(1000)
+            onIrALogin()
+        }
+    }
 
     // --- 1. CONFIGURACIÓN DE TEMA SEGÚN ROL ---
     data class TemaRegistro(
@@ -61,25 +140,24 @@ fun PantallaRegistroPersona(
 
     val tema = when (rol) {
         RolUsuario.ADMINISTRADOR -> TemaRegistro(
-            colorPrincipal = Color(0xFFA3C9A8), // Verde Admin
+            colorPrincipal = Color(0xFFA3C9A8),
             tituloRol = "Administrativo",
             icono = Icons.Default.Apartment
         )
         RolUsuario.DOCTOR -> TemaRegistro(
-            colorPrincipal = Color(0xFFB0C4DE), // Azul Doctor
+            colorPrincipal = Color(0xFFB0C4DE),
             tituloRol = "Médico",
             icono = Icons.Default.HealthAndSafety
         )
         RolUsuario.PACIENTE -> TemaRegistro(
-            colorPrincipal = Color(0xFFFFC0CB), // Rosado Pastel (Paciente)
+            colorPrincipal = Color(0xFFFFC0CB),
             tituloRol = "Paciente",
             icono = Icons.Default.ChildCare
         )
     }
 
-    // --- 2. UI ESTILO CLEAN/HTML ---
     Scaffold(
-        containerColor = FondoBlancoClean // Fondo BLANCO
+        containerColor = FondoBlancoClean
     ) { padding ->
         Column(
             modifier = Modifier
@@ -91,19 +169,16 @@ fun PantallaRegistroPersona(
         ) {
             Spacer(modifier = Modifier.height(32.dp))
 
-            // [ELIMINADO] TÍTULO "LactaCare"
-
-            // SUBTÍTULO
             Text(
                 text = "Crear Cuenta",
-                fontSize = 28.sp, // Aumentado un poco para compensar
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextoOscuroClean
             )
             Text(
                 text = "Registro de ${tema.tituloRol}",
                 fontSize = 16.sp,
-                color = tema.colorPrincipal, // Color dinámico
+                color = tema.colorPrincipal,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 4.dp)
             )
@@ -120,19 +195,19 @@ fun PantallaRegistroPersona(
                     .padding(4.dp)
             ) {
                 Row(modifier = Modifier.fillMaxSize()) {
-                    // Iniciar Sesión (Gris)
                     Box(
                         modifier = Modifier
-                            .weight(1f).fillMaxHeight()
+                            .weight(1f)
+                            .fillMaxHeight()
                             .clickable { onIrALogin() },
                         contentAlignment = Alignment.Center
                     ) {
                         Text("Iniciar Sesión", fontWeight = FontWeight.SemiBold, color = TextoOscuroClean.copy(alpha = 0.6f))
                     }
-                    // Registrarse (Blanco con Sombra)
                     Box(
                         modifier = Modifier
-                            .weight(1f).fillMaxHeight()
+                            .weight(1f)
+                            .fillMaxHeight()
                             .shadow(2.dp, RoundedCornerShape(8.dp))
                             .background(Color.White, RoundedCornerShape(8.dp)),
                         contentAlignment = Alignment.Center
@@ -144,15 +219,10 @@ fun PantallaRegistroPersona(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // --- 3. FORMULARIO COMPLETO ---
-
-            // A. DATOS PERSONALES
             SeccionFormulario("Datos Personales", tema.colorPrincipal)
 
-            // Nota: Pasamos 'tema.colorPrincipal' al colorFocus para pintar borde E ICONO
             CampoRegistroClean(label = "Cédula / DNI", valor = datos.cedula, placeholder = "110...", icon = Icons.Outlined.Badge, teclado = KeyboardType.Number, colorFocus = tema.colorPrincipal) { viewModel.onCedulaChange(it) }
 
-            // Fila Nombres
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(Modifier.weight(1f)) {
                     CampoRegistroClean(label = "Primer Nombre", valor = datos.primerNombre, placeholder = "Juan", icon = Icons.Outlined.Person, colorFocus = tema.colorPrincipal) { viewModel.onPrimerNombreChange(it) }
@@ -162,7 +232,6 @@ fun PantallaRegistroPersona(
                 }
             }
 
-            // Fila Apellidos
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(Modifier.weight(1f)) {
                     CampoRegistroClean(label = "Primer Apellido", valor = datos.primerApellido, placeholder = "Pérez", icon = Icons.Outlined.Person, colorFocus = tema.colorPrincipal) { viewModel.onPrimerApellidoChange(it) }
@@ -172,23 +241,38 @@ fun PantallaRegistroPersona(
                 }
             }
 
-            CampoRegistroClean(label = "Fecha Nacimiento", valor = datos.fechaNacimiento, placeholder = "DD/MM/AAAA", icon = Icons.Outlined.DateRange, colorFocus = tema.colorPrincipal) { viewModel.onFechaNacimientoChange(it) }
+            Column(modifier = Modifier.fillMaxWidth()) {
+                CampoRegistroCleanReadOnly(
+                    label = "Fecha Nacimiento",
+                    valor = datos.fechaNacimiento,
+                    placeholder = "Seleccione su fecha",
+                    icon = Icons.Outlined.DateRange,
+                    colorFocus = tema.colorPrincipal,
+                    onClick = { mostrarCalendario = true }
+                )
+                if (errorEdad != null) {
+                    Text(
+                        text = errorEdad!!,
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
 
-            // B. DATOS ESPECÍFICOS (Según Rol)
             Spacer(modifier = Modifier.height(16.dp))
-            Divider(color = BordeGrisClean)
+            HorizontalDivider(color = BordeGrisClean) // Corregido
             Spacer(modifier = Modifier.height(16.dp))
 
             when (rol) {
                 RolUsuario.DOCTOR -> {
                     SeccionFormulario("Credenciales Médicas", tema.colorPrincipal)
-                    CampoRegistroClean(label = "Licencia Médica", valor = datos.licenciaMedica, placeholder = "Nro. Licencia", icon = Icons.Outlined.HealthAndSafety, colorFocus = tema.colorPrincipal) { viewModel.onLicenciaChange(it) }
-                    CampoRegistroClean(label = "Especialidad", valor = datos.especialidad, placeholder = "Ej. Pediatría", icon = Icons.Outlined.WorkspacePremium, colorFocus = tema.colorPrincipal) { viewModel.onEspecialidadChange(it) }
+                    CampoRegistroClean(label = "Codigo Médico", valor = datos.licenciaMedica, placeholder = "Nro. Licencia", icon = Icons.Outlined.HealthAndSafety, colorFocus = tema.colorPrincipal) { viewModel.onLicenciaChange(it) }
                 }
                 RolUsuario.ADMINISTRADOR -> {
-                    SeccionFormulario("Datos Corporativos", tema.colorPrincipal)
+                    SeccionFormulario("Creedenciales Administrativas", tema.colorPrincipal)
                     CampoRegistroClean(label = "Código Empleado", valor = datos.codigoEmpleado, placeholder = "ADM-001", icon = Icons.Outlined.Badge, colorFocus = tema.colorPrincipal) { viewModel.onCodigoEmpleadoChange(it) }
-                    CampoRegistroClean(label = "Departamento", valor = datos.departamento, placeholder = "Recursos Humanos", icon = Icons.Outlined.Apartment, colorFocus = tema.colorPrincipal) { viewModel.onDepartamentoChange(it) }
+
                 }
                 RolUsuario.PACIENTE -> {
                     SeccionFormulario("Información Adicional", tema.colorPrincipal)
@@ -197,15 +281,15 @@ fun PantallaRegistroPersona(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            Divider(color = BordeGrisClean)
+            HorizontalDivider(color = BordeGrisClean) // Corregido
             Spacer(modifier = Modifier.height(16.dp))
 
-            // C. CUENTA
             SeccionFormulario("Cuenta", tema.colorPrincipal)
 
             CampoRegistroClean(label = "Correo Electrónico", valor = datos.correo, placeholder = "tu@email.com", icon = Icons.Outlined.Email, teclado = KeyboardType.Email, colorFocus = tema.colorPrincipal) { viewModel.onCorreoChange(it) }
 
-            // Password
+            CampoRegistroClean(label = "Teléfono", valor = datos.telefono, placeholder = "0987654321", icon = Icons.Outlined.Phone, teclado = KeyboardType.Phone, colorFocus = tema.colorPrincipal) { viewModel.onTelefonoChange(it) }
+
             Text(
                 text = "Contraseña",
                 fontWeight = FontWeight.SemiBold,
@@ -214,15 +298,14 @@ fun PantallaRegistroPersona(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
             )
             OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
+                value = datos.password,
+                onValueChange = { viewModel.onPasswordChange(it) },
                 placeholder = { Text("Mínimo 8 caracteres", color = Color.Gray) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 colors = inputColorsClean(tema.colorPrincipal),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 singleLine = true,
-                // ICONO DEL OJO TAMBIÉN COLOREADO
                 trailingIcon = {
                     val imagen = if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -233,18 +316,17 @@ fun PantallaRegistroPersona(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // MENSAJES
             if (mensaje != null) {
                 Text(
                     text = mensaje ?: "",
-                    color = if (mensaje!!.contains("Exitoso", ignoreCase = true)) tema.colorPrincipal else Color.Red,
+                    color = if (registroExitoso) tema.colorPrincipal else Color.Red,
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
+                    fontWeight = if (registroExitoso) FontWeight.Bold else FontWeight.Normal,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
             }
 
-            // BOTÓN CONFIRMAR
             Button(
                 onClick = { viewModel.registrar() },
                 modifier = Modifier
@@ -253,7 +335,7 @@ fun PantallaRegistroPersona(
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = tema.colorPrincipal,
-                    contentColor = if (rol == RolUsuario.PACIENTE) TextoOscuroClean else Color.White // Contraste texto
+                    contentColor = if (rol == RolUsuario.PACIENTE) TextoOscuroClean else Color.White
                 ),
                 enabled = !cargando
             ) {
@@ -263,7 +345,6 @@ fun PantallaRegistroPersona(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // FOOTER LEGAL
             val textoLegal = buildAnnotatedString {
                 append("Al registrarte aceptas los ")
                 withStyle(SpanStyle(color = tema.colorPrincipal, fontWeight = FontWeight.Bold)) { append("Términos") }
@@ -277,7 +358,11 @@ fun PantallaRegistroPersona(
     }
 }
 
-// --- COMPONENTES AUXILIARES ---
+fun esMayorDeEdad(fechaNacimiento: LocalDate): Boolean {
+    val hoy = LocalDate.now()
+    return fechaNacimiento.plusYears(18).isBefore(hoy) ||
+            fechaNacimiento.plusYears(18).isEqual(hoy)
+}
 
 @Composable
 fun SeccionFormulario(titulo: String, color: Color) {
@@ -288,6 +373,45 @@ fun SeccionFormulario(titulo: String, color: Color) {
         color = color,
         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
     )
+}
+
+@Composable
+fun CampoRegistroCleanReadOnly(
+    label: String,
+    valor: String,
+    placeholder: String,
+    icon: ImageVector,
+    colorFocus: Color,
+    onClick: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
+        Text(
+            text = label,
+            fontWeight = FontWeight.SemiBold,
+            color = TextoOscuroClean,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        OutlinedTextField(
+            value = valor,
+            onValueChange = {},
+            readOnly = true,
+            enabled = false,
+            placeholder = { Text(placeholder, color = TextoOscuroClean.copy(alpha = 0.4f)) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                disabledBorderColor = BordeGrisClean,
+                disabledTextColor = TextoOscuroClean,
+                disabledPlaceholderColor = TextoOscuroClean.copy(alpha = 0.4f),
+                disabledTrailingIconColor = colorFocus,
+                disabledLabelColor = TextoOscuroClean
+            ),
+            singleLine = true,
+            trailingIcon = { Icon(icon, contentDescription = null) }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+    }
 }
 
 @Composable
@@ -317,7 +441,6 @@ fun CampoRegistroClean(
             colors = inputColorsClean(colorFocus),
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = teclado),
-            // ICONO COLOREADO
             trailingIcon = { Icon(icon, contentDescription = null, tint = colorFocus) }
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -328,7 +451,7 @@ fun CampoRegistroClean(
 fun inputColorsClean(colorFocus: Color) = OutlinedTextFieldDefaults.colors(
     focusedContainerColor = Color.White,
     unfocusedContainerColor = Color.White,
-    focusedBorderColor = colorFocus, // Borde de color al enfocar
+    focusedBorderColor = colorFocus,
     unfocusedBorderColor = BordeGrisClean,
     cursorColor = TextoOscuroClean,
     focusedTextColor = TextoOscuroClean,

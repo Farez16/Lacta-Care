@@ -23,7 +23,7 @@ class MockAdminRepository : AdminRepository {
             password = "admin",
             // Campos específicos de Admin
             codigoEmpleado = "ADM-2025",
-            departamento = "Tecnología"
+
         )
     }
 

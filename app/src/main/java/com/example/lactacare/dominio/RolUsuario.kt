@@ -1,9 +1,26 @@
 package com.example.lactacare.dominio
 
-// Esto es una "Sealed Class" (Clase Sellada).
-// Significa que en tu app SOLO pueden existir estos 3 tipos de usuarios, nada más.
+/**
+* Enum para tipos de rol de usuario
+* ÚNICO archivo de RolUsuario en el proyecto
+*/
 enum class RolUsuario {
-    ADMINISTRADOR,
+    PACIENTE,
     DOCTOR,
-    PACIENTE // (Usuario normal)
+    ADMINISTRADOR;
+
+    companion object {
+        /**
+         * Convierte un String al enum correspondiente
+         * Útil para deserializar desde JSON o backend
+         */
+        fun fromString(rol: String): RolUsuario {
+            return when (rol.uppercase()) {
+                "PACIENTE" -> PACIENTE
+                "DOCTOR" -> DOCTOR
+                "ADMINISTRADOR", "ADMIN" -> ADMINISTRADOR
+                else -> PACIENTE // Por defecto
+            }
+        }
+    }
 }

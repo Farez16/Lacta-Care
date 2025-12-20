@@ -2,6 +2,7 @@ package com.example.lactacare.vistas.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.lactacare.datos.repository.AuthRepositoryImpl
 import com.example.lactacare.dominio.AdminRepository
 import com.example.lactacare.dominio.MedicoRepository
 import com.example.lactacare.dominio.PacienteRepository
@@ -16,12 +17,14 @@ import kotlinx.coroutines.launch
 data class HomeUiState(
     val nombreUsuario: String = "Usuario",
     val isLoading: Boolean = false
+
 )
 
 class HomeViewModel(
     private val pacienteRepo: PacienteRepository,
     private val medicoRepo: MedicoRepository,
-    private val adminRepo: AdminRepository
+    private val adminRepo: AdminRepository,
+    private val authRepository: AuthRepositoryImpl // Inyectamos el repo de auth
 ) : ViewModel() {
 
     // Estado del Rol actual
@@ -31,6 +34,7 @@ class HomeViewModel(
     // Estado de la Sección seleccionada
     private val _seccionActual = MutableStateFlow<ItemMenu>(ItemMenu.Inicio)
     val seccionActual: StateFlow<ItemMenu> = _seccionActual.asStateFlow()
+
 
     // Nuevo: Estado de Datos de Usuario (Para quitar el hardcode)
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -47,21 +51,27 @@ class HomeViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
-            val nombreRecuperado = when (rol) {
-                RolUsuario.PACIENTE -> {
-                    val paciente = pacienteRepo.obtenerPacientePorId(1)
-                    // CORRECCIÓN: Concatenamos Nombre + Apellido
-                    if (paciente != null) "Hola, ${paciente.primerNombre}" else "Hola, Mamá"
+            // Obtenemos el ID real de la sesión actual
+            val session = authRepository.getCurrentSession()
+            val userId = session?.userId?.toInt() ?: -1
+
+            val nombreRecuperado = if (userId != -1) {
+                when (rol) {
+                    RolUsuario.PACIENTE -> {
+                        val paciente = pacienteRepo.obtenerPacientePorId(userId)
+                        if (paciente != null) "Hola, ${paciente.primerNombre}" else "Hola, Mamá"
+                    }
+                    RolUsuario.DOCTOR -> {
+                        val medico = medicoRepo.obtenerMedicoPorId(userId)
+                        if (medico != null) "Dr. ${medico.primerNombre}" else "Dr. Especialista"
+                    }
+                    RolUsuario.ADMINISTRADOR -> {
+                        val admin = adminRepo.obtenerAdminPorId(userId)
+                        if (admin != null) "Admin. ${admin.primerNombre}" else "Administrador"
+                    }
                 }
-                RolUsuario.DOCTOR -> {
-                    // Asumo que Medico tiene campos similares, ajusta si es necesario
-                    val medico = medicoRepo.obtenerMedicoPorId(1)
-                    if (medico != null) "Dr. ${medico.primerNombre}" else "Dr. Especialista"
-                }
-                RolUsuario.ADMINISTRADOR -> {
-                    val admin = adminRepo.obtenerAdminPorId(1)
-                    if (admin != null) "Admin. ${admin.primerNombre}" else "Administrador"
-                }
+            } else {
+                "Bienvenida"
             }
 
             _uiState.value = HomeUiState(

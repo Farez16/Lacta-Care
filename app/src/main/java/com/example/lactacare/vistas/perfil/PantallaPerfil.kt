@@ -32,6 +32,7 @@ import com.example.lactacare.theme.*
 import com.example.lactacare.vistas.auth.BordeGrisClean
 import com.example.lactacare.vistas.auth.TextoOscuroClean
 
+
 @Composable
 fun PantallaPerfil(
     rolUsuario: RolUsuario,

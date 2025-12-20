@@ -10,19 +10,22 @@ import com.example.lactacare.datos.MockReservasRepository
 @Composable
 fun PantallaLactario(
     onVolver: () -> Unit,
-    // Aquí inicializamos el ViewModel con los Mocks
+
     viewModel: LactarioViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return LactarioViewModel(
+                    // 1. El nombre correcto es 'lactarioRepository' (no 'repository')
                     lactarioRepository = MockLactarioRepository(),
-                    reservaRepository = MockReservasRepository()
+
+                    // 2. Y necesitamos 'reservasRepository' para que funcione la sincronización
+                    reservasRepository = MockReservasRepository()
                 ) as T
             }
         }
     )
 ) {
-    // Llamamos a la UI real pasándole el viewModel ya configurado
+    // Reutilizamos la UI de PantallaReservas
     PantallaReservas(
         onVolver = onVolver,
         viewModel = viewModel

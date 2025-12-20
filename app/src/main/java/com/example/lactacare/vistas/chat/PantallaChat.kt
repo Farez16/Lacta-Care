@@ -18,16 +18,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.lactacare.datos.MockChatIARepository
+// CORRECCIÓN: Importamos la entidad correcta 'ChatIA'
+import com.example.lactacare.dominio.ChatIA
 import com.example.lactacare.theme.*
 import com.example.lactacare.vistas.auth.BordeGrisClean
 import com.example.lactacare.vistas.auth.TextoOscuroClean
 
 @Composable
 fun PantallaChat(
-    viewModel: ChatViewModel = viewModel()
+    // Inyectamos el Factory para usar el MockChatIARepository
+    viewModel: ChatViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return ChatViewModel(chatIARepository = MockChatIARepository()) as T
+            }
+        }
+    )
 ) {
     var textoInput by remember { mutableStateOf("") }
+    // Esta lista es de tipo 'ChatIA' y es reactiva
     val mensajes = viewModel.mensajes
 
     Column(
@@ -65,7 +78,6 @@ fun PantallaChat(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Icono grande o Imagen
                         Icon(Icons.Default.SmartToy, null, tint = MomPrimary, modifier = Modifier.size(80.dp))
                         Spacer(Modifier.height(16.dp))
                         Text(
@@ -94,24 +106,26 @@ fun PantallaChat(
                 .background(Color.White)
                 .padding(16.dp)
         ) {
-            Text("Sugerencias", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextoOscuroClean)
-            Spacer(Modifier.height(8.dp))
+            // Mostramos sugerencias solo si hay poco historial
+            if (mensajes.size < 4) {
+                Text("Sugerencias", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextoOscuroClean)
+                Spacer(Modifier.height(8.dp))
 
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                val suggestions = listOf("Aumentar producción", "Extraer leche", "Almacenamiento")
-                items(suggestions) { text ->
-                    SuggestionChip(
-                        onClick = { viewModel.enviarMensaje(text) },
-                        label = { Text(text, color = TextoOscuroClean, fontSize = 12.sp) },
-                        colors = SuggestionChipDefaults.suggestionChipColors(containerColor = MomPrimary.copy(alpha = 0.2f), labelColor = TextoOscuroClean),
-                        border = null
-                    )
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val suggestions = listOf("Aumentar producción", "Extraer leche", "Almacenamiento")
+                    items(suggestions) { text ->
+                        SuggestionChip(
+                            onClick = { viewModel.enviarMensaje(text) },
+                            label = { Text(text, color = TextoOscuroClean, fontSize = 12.sp) },
+                            colors = SuggestionChipDefaults.suggestionChipColors(containerColor = MomPrimary.copy(alpha = 0.2f), labelColor = TextoOscuroClean),
+                            border = null
+                        )
+                    }
                 }
+                Spacer(Modifier.height(12.dp))
             }
 
-            Spacer(Modifier.height(12.dp))
-
-            // Campo de Texto Estilo Chat
+            // Campo de Texto
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     value = textoInput,
@@ -144,8 +158,9 @@ fun PantallaChat(
     }
 }
 
+// CORRECCIÓN: Recibe 'ChatIA' en lugar de 'MensajeChat'
 @Composable
-fun BurbujaMensaje(msg: MensajeChat) {
+fun BurbujaMensaje(msg: ChatIA) {
     val alignment = if (msg.esUsuario) Alignment.End else Alignment.Start
     val colorBurbuja = if (msg.esUsuario) MomPrimary else Color.White
     val colorTexto = if (msg.esUsuario) Color.White else TextoOscuroClean
@@ -165,7 +180,7 @@ fun BurbujaMensaje(msg: MensajeChat) {
             shadowElevation = 1.dp
         ) {
             if (msg.esAnimacionEscribiendo) {
-                Text("Escribiendo...", modifier = Modifier.padding(12.dp), fontSize = 14.sp, color = colorTexto)
+                Text("Escribiendo...", modifier = Modifier.padding(12.dp), fontSize = 14.sp, color = colorTexto, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
             } else {
                 Text(
                     text = msg.texto,
